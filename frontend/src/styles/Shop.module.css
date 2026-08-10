@@ -1,0 +1,128 @@
+.pageWrapper {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* HERO */
+.hero {
+  text-align: center;
+  padding: 90px 24px 70px;
+  background: radial-gradient(circle at top, #eef2ff 0%, transparent 60%);
+  border-bottom: 1px solid #eef2f7;
+}
+
+.hero h1 {
+  font-size: clamp(2.4rem, 4vw, 3.5rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: #0f172a;
+}
+
+.heroSubtext {
+  margin-top: 12px;
+  font-size: 1.05rem;
+  color: #64748b;
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* LAYOUT */
+.mainLayout {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 32px;
+  padding: 0 28px 80px;
+}
+
+/* SIDEBAR AREA */
+aside {
+  position: sticky;
+  top: 24px;
+}
+
+/* MAIN AREA */
+.sectionTitle {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 18px;
+}
+
+/* PRODUCT GRID */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+
+/* CARD WRAPPER ENHANCEMENT (works with ProductCard) */
+.productGrid > * {
+  transition: transform 0.2s ease;
+}
+
+.productGrid > *:hover {
+  transform: translateY(-4px);
+}
+
+/* SKELETON */
+.skeleton {
+  background: #ffffff;
+  border: 1px solid #eef2f7;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+.imageContainer {
+  height: 180px;
+  background: linear-gradient(90deg, #f1f5f9, #e2e8f0, #f1f5f9);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+/* EMPTY STATE */
+.textCenter {
+  text-align: center;
+  padding: 80px 20px;
+  color: #64748b;
+}
+
+.textCenter span {
+  font-size: 1.1rem;
+  display: block;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* LOADING SPINNER WRAPPER */
+.loaderWrap {
+  display: flex;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .mainLayout {
+    grid-template-columns: 1fr;
+    padding: 0 16px 60px;
+  }
+
+  aside {
+    display: none;
+  }
+}

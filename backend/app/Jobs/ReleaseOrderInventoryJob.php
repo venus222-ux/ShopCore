@@ -1,0 +1,23 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\Order;
+use App\Services\InventoryService;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+
+class ReleaseOrderInventoryJob implements ShouldQueue //Eliberează rezervarea de stoc atunci când sesiunea Stripe expiră.
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public function __construct(public Order $order) {}
+
+    public function handle(InventoryService $inventory): void
+    {
+        $inventory->release($this->order);
+    }
+}

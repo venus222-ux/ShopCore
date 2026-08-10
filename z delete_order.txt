@@ -1,0 +1,26 @@
+php artisan tinker
+
+// 1. Șterge refund-urile (și credit notes-urile media atașate)
+\App\Models\Refund::all()->each(function ($refund) {
+    $refund->clearMediaCollection('credit_notes');
+    $refund->delete();
+});
+
+// 2. Șterge order items
+\App\Models\OrderItem::query()->delete();
+
+// 3. Șterge invoice-urile media atașate comenzilor, apoi comenzile
+\App\Models\Order::all()->each(function ($order) {
+    $order->clearMediaCollection('invoices');
+    $order->delete();
+});
+
+// 4. Resetează rezervările de stoc (reserved), ca să nu rămână "held" fals
+\App\Models\Inventory::query()->update(['reserved' => 0]);
+
+Verificare că totul e curat
+
+>>> \App\Models\Order::count();       // ar trebui 0
+>>> \App\Models\OrderItem::count();   // ar trebui 0
+>>> \App\Models\Refund::count();      // ar trebui 0
+>>> \App\Models\Inventory::where('reserved', '>', 0)->count(); // ar trebui 0

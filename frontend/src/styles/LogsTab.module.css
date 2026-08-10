@@ -1,0 +1,287 @@
+.tabContainer {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  padding: 10px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.glassCard {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.cardHeader {
+  padding: 24px;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.headerTitle h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #1e293b;
+  font-weight: 700;
+}
+
+.countBadge {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+/* Table Styling */
+.tableContainer {
+  overflow-x: auto;
+  min-height: 400px;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th {
+  background: #f8fafc;
+  padding: 14px 24px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+}
+
+.table td {
+  padding: 16px 24px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+  color: #334155;
+  font-size: 0.9rem;
+}
+
+.table tr:hover {
+  background-color: #fbfcfe;
+}
+
+/* Cell Specifics */
+.dateTimeCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+}
+
+.primaryText {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.secondaryText {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.fileIconWrapper {
+  width: 36px;
+  height: 36px;
+  background: #eff6ff;
+  color: #3b82f6;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fileName {
+  font-weight: 600;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productId {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  font-family: monospace;
+}
+
+.sizeCell {
+  font-weight: 500;
+}
+
+.sizeCell span {
+  color: #94a3b8;
+  font-size: 0.8rem;
+}
+
+/* Mime Badges */
+.mimeBadge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.mimeImage {
+  background: #dcfce7;
+  color: #15803d;
+}
+.mimePdf {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.mimeZip {
+  background: #fef9c3;
+  color: #a16207;
+}
+.mimeDefault {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.originGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.originItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+/* Actions */
+.deleteAction {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.deleteAction:hover {
+  color: #ef4444;
+  background: #fef2f2;
+}
+
+/* Pagination */
+.pagination {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.pageBtn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.pageBtn:hover:not(:disabled) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.pageBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pageIndicator {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+/* Sidebar Styling */
+.sidebarHeader {
+  padding: 24px 24px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #3b82f6;
+}
+
+.sidebarHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.statsGrid {
+  padding: 0 24px 24px;
+  display: grid;
+  gap: 12px;
+}
+
+.statBox {
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #f1f5f9;
+}
+
+.statBox label {
+  display: block;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-bottom: 4px;
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.sidebarFooter {
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  line-height: 1.5;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

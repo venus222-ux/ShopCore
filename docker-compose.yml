@@ -1,0 +1,71 @@
+services:
+  # Redis
+  redis:
+    image: redis:7
+    container_name: shopcore_redis
+    ports:
+      - "6381:6379"
+    volumes:
+      - redis_data:/data
+
+  # PHP-FPM (Serves the Web Traffic)
+  php-fpm:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shopcore_phpfpm
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      - APP_ENV=local
+      - REDIS_HOST=shopcore_redis
+      - REDIS_PORT=6379
+      - DB_HOST=host.docker.internal # Use this for your Database
+
+  # Nginx (The Web Server)
+  nginx:
+    image: nginx:alpine
+    container_name: shopcore_nginx
+    ports:
+      - "8081:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php-fpm
+
+  # Horizon Worker (Background Jobs)
+  laravel_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shopcore__worker
+    command: php artisan horizon
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      - redis
+      - php-fpm
+    environment:
+      - QUEUE_CONNECTION=redis
+      - IS_DOCKER=true
+      - REDIS_HOST=shopcore_redis
+      - REDIS_PORT=6379
+      - DB_HOST=host.docker.internal
+      - REDIS_PASSWORD=null
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.19.10
+    container_name: shopcore_elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
+volumes:
+  redis_data:
+  es_data:

@@ -1,0 +1,404 @@
+/* ==========================================================================
+   Premium Refined Minimalist Checkout Grid System
+   ========================================================================== */
+
+.checkoutContainer {
+  max-width: 1200px;
+  margin: 3.5rem auto;
+  padding: 0 1.5rem;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  color: #0f172a;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 410px;
+  gap: 5rem;
+  align-items: start;
+}
+
+.sectionTitle {
+  font-size: 1.85rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 2rem;
+  letter-spacing: -0.025em;
+}
+
+/* User Profile Billing Cards */
+.savedAddressCard {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.015);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px dashed #e2e8f0;
+  padding-bottom: 1rem;
+}
+
+.cardHeader h4 {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #475569;
+  letter-spacing: 0.05em;
+}
+
+.editBtn {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.editBtn:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.addressDetails p {
+  margin: 0.3rem 0;
+  color: #334155;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.companyName {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 1.05rem !important;
+}
+
+.countryName {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+/* Sticky Operational Purchase Ledger Profile */
+.orderPreview {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 2rem;
+  position: sticky;
+  top: 6rem;
+  box-shadow: 0 12px 30px -10px rgba(15, 23, 42, 0.04);
+}
+
+.summaryTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #0f172a;
+  border-bottom: 1px solid #f1f5f9;
+  padding-bottom: 12px;
+}
+
+.miniItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  gap: 1rem;
+}
+
+.itemInfo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.qtyBadge {
+  background: #f1f5f9;
+  color: #0f172a;
+  font-size: 0.725rem;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.itemTexts {
+  overflow: hidden;
+}
+
+.itemTitle {
+  margin: 0;
+  font-weight: 600;
+  font-size: 0.925rem;
+  color: #1e293b;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemCategory {
+  color: #94a3b8;
+  font-size: 0.775rem;
+}
+
+.itemPrice {
+  display: block;
+  font-weight: 600;
+  font-size: 0.925rem;
+  color: #0f172a;
+}
+
+.itemOldPrice {
+  display: block;
+  font-size: 0.8rem;
+  text-decoration: line-through;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+.summaryTotals {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
+.totalLine {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  color: #64748b;
+  font-size: 0.925rem;
+}
+
+.discountLine {
+  color: #10b981; /* High-performance pricing active state green */
+  font-weight: 600;
+}
+
+.grandTotal {
+  color: #0f172a;
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+/* Primary Conversion Trigger Configuration */
+.payBtn {
+  background: #6366f1;
+  color: #ffffff;
+  border: none;
+  width: 100%;
+  padding: 1.1rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 2rem;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.2);
+}
+
+.payBtn:hover:not(:disabled) {
+  background: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(99, 102, 241, 0.3);
+}
+
+.payBtn:disabled {
+  background: #cbd5e1;
+  color: #94a3b8;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Fault Isolation Empty Components */
+.emptyContainer {
+  height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background: #f8fafc;
+}
+
+.emptyContent {
+  background: #ffffff;
+  padding: 3rem 2.5rem;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.01);
+}
+
+.emptyIconWrapper {
+  width: 70px;
+  height: 70px;
+  background: #f1f5f9;
+  border-radius: 50%;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.returnShopBtn {
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.75rem;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.returnShopBtn:hover {
+  background: #1e293b;
+}
+
+.secureNote {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2rem;
+  font-size: 0.8rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.spinner {
+  animation: rotation 1s linear infinite;
+}
+
+@keyframes rotation {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile Media Adaptations */
+@media (max-width: 1024px) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+  .orderPreview {
+    order: -1;
+    position: static;
+  }
+}
+
+.billingSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.billingTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  color: #111827;
+}
+
+.optional {
+  font-weight: 400;
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.formGroup label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.formGroup input {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.formGroup input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  background-color: #fff;
+}
+
+/* Checkbox Polish */
+.checkboxWrapper {
+  margin-top: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: #2563eb;
+  cursor: pointer;
+}
+
+.checkboxText {
+  font-size: 0.9rem;
+  color: #4b5563;
+  user-select: none;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .formRow {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
