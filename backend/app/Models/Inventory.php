@@ -20,7 +20,7 @@ class Inventory extends Model
     // Quantity actually available to sell right now
     public function getAvailableAttribute(): ?int
     {
-        if (!$this->track_stock) {
+        if (! $this->track_stock) {
             return null; // unlimited - digital goods, or stock not tracked
         }
 
@@ -29,7 +29,7 @@ class Inventory extends Model
 
     public function inStock(int $requested = 1): bool
     {
-        if (!$this->track_stock) {
+        if (! $this->track_stock) {
             return true;
         }
 

@@ -10,11 +10,11 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class FinalizeOrderInventoryJob implements ShouldQueue //Finalizează (deduce) stocul după ce plata a fost confirmată.
+class FinalizeOrderInventoryJob implements ShouldQueue // Finalizează (deduce) stocul după ce plata a fost confirmată.
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public Order $order) {}  //primeste un Order in constructor
+    public function __construct(public Order $order) {}  // primeste un Order in constructor
 
     public function handle(InventoryService $inventory): void
     {

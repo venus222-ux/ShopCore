@@ -64,13 +64,13 @@ return [
             'after_commit' => false,
         ],
 
-      'redis' => [
-       'driver' => 'redis',
-       'connection' => 'default',
-       'queue' => 'default',
-       'retry_after' => 90,
-       'block_for' => 5,
-     ],
+        'redis' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => 'default',
+            'retry_after' => 90,
+            'block_for' => 5,
+        ],
         'deferred' => [
             'driver' => 'deferred',
         ],

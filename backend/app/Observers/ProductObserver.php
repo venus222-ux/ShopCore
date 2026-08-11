@@ -2,9 +2,9 @@
 
 namespace App\Observers;
 
-use App\Models\Product;
-use App\Jobs\IndexProductJob;
 use App\Jobs\DeleteProductJob;
+use App\Jobs\IndexProductJob;
+use App\Models\Product;
 
 class ProductObserver
 {

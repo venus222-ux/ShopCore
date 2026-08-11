@@ -8,7 +8,7 @@ use App\Models\Order;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\DB;
 
-class InventoryService //gestionează toată logica de stoc
+class InventoryService // gestionează toată logica de stoc
 {
     /**
      * Reserve stock for a set of checkout lines. MUST be called inside an
@@ -16,24 +16,24 @@ class InventoryService //gestionează toată logica de stoc
      * checkout in one) so the row locks taken here are held until that
      * transaction commits/rolls back.
      *
-     * @param array<int, array{variant: ProductVariant, quantity: int}> $lines
+     * @param  array<int, array{variant: ProductVariant, quantity: int}>  $lines
      *
      * @throws OutOfStockException
      */
-    public function reserve(array $lines): void //Rezervarea stocului la checkout
+    public function reserve(array $lines): void // Rezervarea stocului la checkout
     {
-        foreach ($lines as $line) { //Pentru fiecare linie
+        foreach ($lines as $line) { // Pentru fiecare linie
             /** @var ProductVariant $variant */
-            $variant  = $line['variant'];
+            $variant = $line['variant'];
             $quantity = $line['quantity'];
 
             $inventory = Inventory::where('product_variant_id', $variant->id)
-                ->lockForUpdate() //Blochează rândul din tabela inventory (lockForUpdate())
+                ->lockForUpdate() // Blochează rândul din tabela inventory (lockForUpdate())
                 ->first();
 
             // No inventory row at all = untracked (shouldn't happen after the
             // backfill command, but don't block checkout over a data gap).
-            if (!$inventory || !$inventory->track_stock) {
+            if (! $inventory || ! $inventory->track_stock) {
                 continue;
             }
 
@@ -57,17 +57,17 @@ class InventoryService //gestionează toată logica de stoc
      * row serializes concurrent calls and inventory_finalized_at short-
      * circuits repeats.
      */
-    public function finalize(Order $order): void //Finalizarea stocului (după plată reușită)
+    public function finalize(Order $order): void // Finalizarea stocului (după plată reușită)
     {
         DB::transaction(function () use ($order) {
-            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail(); //Blochează comanda (lockForUpdate()).
+            $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail(); // Blochează comanda (lockForUpdate()).
 
             if ($locked->inventory_finalized_at) {
                 return;
             }
 
             foreach ($locked->items as $item) {
-                if (!$item->product_variant_id) {
+                if (! $item->product_variant_id) {
                     continue;
                 }
 
@@ -75,7 +75,7 @@ class InventoryService //gestionează toată logica de stoc
                     ->lockForUpdate()
                     ->first();
 
-                if (!$inventory || !$inventory->track_stock) {
+                if (! $inventory || ! $inventory->track_stock) {
                     continue;
                 }
 
@@ -94,7 +94,7 @@ class InventoryService //gestionează toată logica de stoc
      * reasons as finalize(). A no-op if the order already finalized
      * (paid orders must never have their stock released back).
      */
-    public function release(Order $order): void //liberarea rezervării (când comanda expiră)
+    public function release(Order $order): void // liberarea rezervării (când comanda expiră)
     {
         DB::transaction(function () use ($order) {
             $locked = Order::whereKey($order->id)->lockForUpdate()->firstOrFail();
@@ -104,7 +104,7 @@ class InventoryService //gestionează toată logica de stoc
             }
 
             foreach ($locked->items as $item) {
-                if (!$item->product_variant_id) {
+                if (! $item->product_variant_id) {
                     continue;
                 }
 
@@ -112,7 +112,7 @@ class InventoryService //gestionează toată logica de stoc
                     ->lockForUpdate()
                     ->first();
 
-                if (!$inventory || !$inventory->track_stock) {
+                if (! $inventory || ! $inventory->track_stock) {
                     continue;
                 }
 
@@ -140,12 +140,12 @@ class InventoryService //gestionează toată logica de stoc
             // this order in the first place - a cancelled/never-finalized
             // order has nothing to give back here (release() already handled
             // its reservation separately).
-            if (!$locked->inventory_finalized_at) {
+            if (! $locked->inventory_finalized_at) {
                 return;
             }
 
             foreach ($locked->items as $item) {
-                if (!$item->product_variant_id) {
+                if (! $item->product_variant_id) {
                     continue;
                 }
 
@@ -153,7 +153,7 @@ class InventoryService //gestionează toată logica de stoc
                     ->lockForUpdate()
                     ->first();
 
-                if (!$inventory || !$inventory->track_stock) {
+                if (! $inventory || ! $inventory->track_stock) {
                     continue;
                 }
 

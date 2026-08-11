@@ -2,19 +2,22 @@
 
 namespace App\Events;
 
+use App\Models\Product;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Product;
-use Illuminate\Foundation\Auth\User;
 
 class FileUploaded
 {
     use Dispatchable, SerializesModels;
 
     public $product;
+
     public $file; // array cu file_name, size, mime, path
+
     public $user;
+
     public $ip;
+
     public $userAgent;
 
     public function __construct(Product $product, array $file, $user, string $ip, string $userAgent)

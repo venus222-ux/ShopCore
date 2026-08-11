@@ -31,7 +31,7 @@ class Refund extends Model implements HasMedia
         parent::boot();
 
         static::created(function (Refund $refund) {
-            if (!$refund->credit_note_number) {
+            if (! $refund->credit_note_number) {
                 $refund->updateQuietly([
                     'credit_note_number' => 'CN-'.$refund->created_at->format('Y').'-'.str_pad($refund->id, 6, '0', STR_PAD_LEFT),
                 ]);

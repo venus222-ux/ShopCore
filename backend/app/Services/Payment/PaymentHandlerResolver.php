@@ -18,7 +18,7 @@ class PaymentHandlerResolver
 
     public function resolve(string $method): PaymentHandler
     {
-        if (!isset($this->handlers[$method])) {
+        if (! isset($this->handlers[$method])) {
             throw new PaymentMethodUnavailableException("Unknown payment method: {$method}");
         }
 
@@ -29,7 +29,7 @@ class PaymentHandlerResolver
     {
         $handler = $this->resolve($method);
 
-        if (!$handler->isAvailableFor($requiresShipping, $orderTotal)) {
+        if (! $handler->isAvailableFor($requiresShipping, $orderTotal)) {
             throw new PaymentMethodUnavailableException(
                 "The '{$method}' payment method isn't available for this order."
             );
@@ -37,5 +37,4 @@ class PaymentHandlerResolver
     }
 }
 
-
-//Adăugarea unei a treia metode de plată în viitor (ex. bank transfer) devine: o clasă nouă + o linie în $handlers, fără să atingi CheckoutService.
+// Adăugarea unei a treia metode de plată în viitor (ex. bank transfer) devine: o clasă nouă + o linie în $handlers, fără să atingi CheckoutService.

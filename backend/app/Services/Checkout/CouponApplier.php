@@ -18,7 +18,7 @@ class CouponApplier
         // coupon can't both squeeze past the limit.
         $coupon = Coupon::where('code', $code)->lockForUpdate()->first();
 
-        if (!$coupon || !$coupon->isValidFor($subtotal)) {
+        if (! $coupon || ! $coupon->isValidFor($subtotal)) {
             throw new InvalidCouponException('This coupon is invalid or cannot be applied to this order.');
         }
 

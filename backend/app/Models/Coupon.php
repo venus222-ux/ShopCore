@@ -19,31 +19,31 @@ class Coupon extends Model
     ];
 
     protected $casts = [
-        'is_active'    => 'boolean',
-        'value'        => 'decimal:2',
+        'is_active' => 'boolean',
+        'value' => 'decimal:2',
         'min_subtotal' => 'decimal:2',
-        'starts_at'    => 'datetime',
-        'ends_at'      => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
     ];
 
     public function isValidFor(float $subtotal): bool
     {
-        if (!$this->is_active) {
+        if (! $this->is_active) {
             return false;
         }
 
         $now = now();
 
-        if (!empty($this->starts_at) && $now->lt($this->starts_at)) {
+        if (! empty($this->starts_at) && $now->lt($this->starts_at)) {
             return false;
         }
-        if (!empty($this->ends_at) && $now->gt($this->ends_at)) {
+        if (! empty($this->ends_at) && $now->gt($this->ends_at)) {
             return false;
         }
-        if (!is_null($this->usage_limit) && $this->used_count >= $this->usage_limit) {
+        if (! is_null($this->usage_limit) && $this->used_count >= $this->usage_limit) {
             return false;
         }
-        if (!is_null($this->min_subtotal) && $subtotal < (float) $this->min_subtotal) {
+        if (! is_null($this->min_subtotal) && $subtotal < (float) $this->min_subtotal) {
             return false;
         }
 
@@ -52,7 +52,7 @@ class Coupon extends Model
 
     public function discountFor(float $subtotal): float
     {
-        if (!$this->isValidFor($subtotal)) {
+        if (! $this->isValidFor($subtotal)) {
             return 0;
         }
 

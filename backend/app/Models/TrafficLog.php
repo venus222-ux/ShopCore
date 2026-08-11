@@ -14,7 +14,7 @@ class TrafficLog extends Model
         'user_id',
         'browser',
         'platform',
-        'device'
+        'device',
 
     ];
 }

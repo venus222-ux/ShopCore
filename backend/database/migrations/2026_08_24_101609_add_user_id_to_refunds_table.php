@@ -1,4 +1,5 @@
 <?php
+
 // database/migrations/2026_07_21_000001_add_user_id_to_refunds_table.php
 
 use Illuminate\Database\Migrations\Migration;

@@ -1,8 +1,16 @@
 <?php
 
+use App\Http\Middleware\AdminMiddleware;
+use App\Http\Middleware\JwtMiddleware;
+use App\Http\Middleware\TrackTraffic;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull;
+use Illuminate\Foundation\Http\Middleware\TrimStrings;
+use Illuminate\Http\Middleware\HandleCors;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Routing\Middleware\ThrottleRequests;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,24 +23,22 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Global middleware
         $middleware->use([
-            \Illuminate\Http\Middleware\HandleCors::class,
-            \Illuminate\Foundation\Http\Middleware\TrimStrings::class,
-            \Illuminate\Foundation\Http\Middleware\ConvertEmptyStringsToNull::class,
+            HandleCors::class,
+            TrimStrings::class,
+            ConvertEmptyStringsToNull::class,
         ]);
-
-
 
         // API group
         $middleware->group('api', [
-            \Illuminate\Routing\Middleware\SubstituteBindings::class,
-            \Illuminate\Routing\Middleware\ThrottleRequests::class . ':api',
-            \App\Http\Middleware\TrackTraffic::class,
+            SubstituteBindings::class,
+            ThrottleRequests::class.':api',
+            TrackTraffic::class,
         ]);
 
         // JWT alias 👇
         $middleware->alias([
-            'auth.jwt' => \App\Http\Middleware\JwtMiddleware::class,
-            'role'     => \App\Http\Middleware\AdminMiddleware::class,
+            'auth.jwt' => JwtMiddleware::class,
+            'role' => AdminMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

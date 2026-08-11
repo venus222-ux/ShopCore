@@ -1,4 +1,5 @@
 <?php
+
 // app/Mail/RefundApprovedMail.php
 
 namespace App\Mail;

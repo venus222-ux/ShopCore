@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Refund;
 use App\Services\RefundService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 
 class UserRefundController extends Controller
@@ -36,7 +37,7 @@ class UserRefundController extends Controller
 
         return response()->json([
             'message' => 'Refund request submitted. Our team will review it shortly.',
-            'refund'  => $refund,
+            'refund' => $refund,
         ]);
     }
 
@@ -55,7 +56,7 @@ class UserRefundController extends Controller
             return response()->download($existing->getPath(), $fileName);
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.credit-note', compact('refund'));
+        $pdf = Pdf::loadView('emails.credit-note', compact('refund'));
 
         $refund
             ->addMediaFromString($pdf->output())

@@ -1,4 +1,5 @@
 <?php
+
 // app/Listeners/Refund/SendRefundRejectedEmail.php
 
 namespace App\Listeners\Refund;
@@ -14,7 +15,7 @@ class SendRefundRejectedEmail implements ShouldQueue
     {
         $email = $event->refund->order->billing_email ?? $event->refund->user?->email;
 
-        if (!$email) {
+        if (! $email) {
             return;
         }
 

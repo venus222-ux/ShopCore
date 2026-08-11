@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\Product;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProductResource;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
-use App\Http\Resources\ProductResource;
 
 class CategoryController extends Controller
 {
@@ -16,12 +16,12 @@ class CategoryController extends Controller
         $categories = Category::all();
 
         return response()->json([
-            'data' => $categories
+            'data' => $categories,
         ]);
     }
 
     // GET /api/categories/{slug}/products?page=1
-      public function products(Category $category, Request $request)
+    public function products(Category $category, Request $request)
     {
         $perPage = (int) $request->input('per_page', 12);
 
@@ -32,9 +32,8 @@ class CategoryController extends Controller
             ->latest()
             ->paginate($perPage);
 
-
-       return ProductResource::collection($products)->additional([
-           'category' => $category->name,
+        return ProductResource::collection($products)->additional([
+            'category' => $category->name,
         ]);
     }
 }

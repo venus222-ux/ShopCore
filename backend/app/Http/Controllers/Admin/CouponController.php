@@ -43,7 +43,7 @@ class CouponController extends Controller
 
     public function toggleActive(Coupon $coupon)
     {
-        $coupon->update(['is_active' => !$coupon->is_active]);
+        $coupon->update(['is_active' => ! $coupon->is_active]);
 
         return response()->json($coupon->fresh());
     }
@@ -51,17 +51,17 @@ class CouponController extends Controller
     private function validated(Request $request, ?Coupon $existing = null): array
     {
         return $request->validate([
-            'code'         => [
+            'code' => [
                 'required', 'string', 'max:50',
-                'unique:coupons,code' . ($existing ? ",{$existing->id}" : ''),
+                'unique:coupons,code'.($existing ? ",{$existing->id}" : ''),
             ],
-            'type'         => 'required|in:percent,fixed',
-            'value'        => 'required|numeric|min:0',
+            'type' => 'required|in:percent,fixed',
+            'value' => 'required|numeric|min:0',
             'min_subtotal' => 'nullable|numeric|min:0',
-            'usage_limit'  => 'nullable|integer|min:1',
-            'is_active'    => 'boolean|nullable',
-            'starts_at'    => 'nullable|date',
-            'ends_at'      => 'nullable|date|after_or_equal:starts_at',
+            'usage_limit' => 'nullable|integer|min:1',
+            'is_active' => 'boolean|nullable',
+            'starts_at' => 'nullable|date',
+            'ends_at' => 'nullable|date|after_or_equal:starts_at',
         ]);
     }
 }

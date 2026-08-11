@@ -2,12 +2,13 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use Elastic\Elasticsearch\ClientBuilder;
+use Illuminate\Console\Command;
 
 class ElasticsearchSetup extends Command
 {
     protected $signature = 'elasticsearch:setup';
+
     protected $description = 'Create Elasticsearch index with mapping';
 
     public function handle()
@@ -20,7 +21,7 @@ class ElasticsearchSetup extends Command
 
         // ❌ delete if exists (IMPORTANT for updates)
         if ($client->indices()->exists(['index' => $index])->asBool()) {
-            $this->warn("Deleting existing index...");
+            $this->warn('Deleting existing index...');
             $client->indices()->delete(['index' => $index]);
         }
 
@@ -33,10 +34,10 @@ class ElasticsearchSetup extends Command
                         'analyzer' => [
                             'custom_analyzer' => [
                                 'type' => 'standard',
-                                'stopwords' => '_english_'
-                            ]
-                        ]
-                    ]
+                                'stopwords' => '_english_',
+                            ],
+                        ],
+                    ],
                 ],
                 'mappings' => [
                     'properties' => [
@@ -44,12 +45,12 @@ class ElasticsearchSetup extends Command
                             'type' => 'text',
                             'analyzer' => 'custom_analyzer',
                             'fields' => [
-                                'keyword' => ['type' => 'keyword']
-                            ]
+                                'keyword' => ['type' => 'keyword'],
+                            ],
                         ],
                         'description' => [
                             'type' => 'text',
-                            'analyzer' => 'custom_analyzer'
+                            'analyzer' => 'custom_analyzer',
                         ],
                         'price' => ['type' => 'float'],
                         'category_id' => ['type' => 'integer'],
@@ -71,22 +72,21 @@ class ElasticsearchSetup extends Command
                                 'value' => [
                                     'type' => 'text',
                                     'fields' => [
-                                        'keyword' => ['type' => 'keyword']
-                                    ]
+                                        'keyword' => ['type' => 'keyword'],
+                                    ],
                                 ],
                             ],
                         ],
-                    ]
-                ]
-            ]
+                    ],
+                ],
+            ],
         ]);
 
-        $this->info("✅ Elasticsearch index created!");
+        $this->info('✅ Elasticsearch index created!');
 
         return Command::SUCCESS;
     }
 }
-
 
 /**
  * | Component              | Responsabilitate        |
@@ -94,5 +94,4 @@ class ElasticsearchSetup extends Command
 | `ElasticsearchSetup`   | creează index + mapping (now incl. nested attributes) |
 | `ReindexProducts`      | bagă date               |
 | `ProductSearchService` | face search              |
-
  */

@@ -6,13 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Address extends Model
 {
-// app/Models/Address.php
+    // app/Models/Address.php
     protected $fillable = [
-       'user_id', 'type', 'label',
-       'first_name', 'last_name', 'company_name', 'vat_number',
-       'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country',
-       'phone', 'delivery_instructions',
-       'is_default',
+        'user_id', 'type', 'label',
+        'first_name', 'last_name', 'company_name', 'vat_number',
+        'address_line_1', 'address_line_2', 'city', 'state', 'postal_code', 'country',
+        'phone', 'delivery_instructions',
+        'is_default',
     ];
 
     protected $casts = [

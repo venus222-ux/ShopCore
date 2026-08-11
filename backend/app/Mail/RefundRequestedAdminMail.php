@@ -1,4 +1,5 @@
 <?php
+
 // app/Mail/RefundRequestedAdminMail.php
 
 namespace App\Mail;

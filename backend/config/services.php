@@ -36,14 +36,14 @@ return [
     ],
 
     'elasticsearch' => [
-      'host' => env('ELASTICSEARCH_HOST'),
-      'index' => env('ELASTICSEARCH_INDEX', 'products'),
+        'host' => env('ELASTICSEARCH_HOST'),
+        'index' => env('ELASTICSEARCH_INDEX', 'products'),
     ],
 
     'stripe' => [
-      'key' => env('STRIPE_KEY'),
-      'secret' => env('STRIPE_SECRET'),
-      'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
     ],
 
 ];

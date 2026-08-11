@@ -16,6 +16,7 @@ class ProductResource extends JsonResource
 
         $asset = $media
             ->firstWhere('collection_name', 'asset');
+
         return [
             'id' => $this->id,
             'slug' => $this->slug,
@@ -23,13 +24,13 @@ class ProductResource extends JsonResource
 
             'price' => $this->price,
             'final_price' => $this->final_price,
-            'old_price'   => $this->old_price,
+            'old_price' => $this->old_price,
 
-            'discount_percentage'=> $this->discount_percentage,
+            'discount_percentage' => $this->discount_percentage,
             'discount_fixed' => $this->discount_fixed,
 
             'discount_starts_at' => optional($this->discount_starts_at)?->toISOString(),
-            'discount_ends_at'   => optional($this->discount_ends_at)?->toISOString(),
+            'discount_ends_at' => optional($this->discount_ends_at)?->toISOString(),
 
             'has_discount' => $this->hasActiveDiscount(),
 
@@ -40,7 +41,6 @@ class ProductResource extends JsonResource
 
             'asset_type' => $this->asset_type ?? 'Premium',
             'is_published' => (bool) $this->is_published,
-
 
             'category' => $this->category?->only(['id', 'name']),
 
@@ -59,7 +59,7 @@ class ProductResource extends JsonResource
                 ->values()
                 ->toArray(),
 
-             'asset' => $asset ? [
+            'asset' => $asset ? [
                 'id' => $asset->id,
                 'url' => $asset->getFullUrl(),
                 'file_name' => $asset->file_name,

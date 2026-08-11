@@ -1,4 +1,5 @@
 <?php
+
 // app/Services/Checkout/DTO/CartResolution.php
 
 namespace App\Services\Checkout\DTO;

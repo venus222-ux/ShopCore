@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
-use Illuminate\Support\Facades\DB;
 
 class Order extends Model implements HasMedia
 {
@@ -66,15 +65,15 @@ class Order extends Model implements HasMedia
     ];
 
     protected $casts = [
-        'subtotal'                => 'decimal:2',
-        'vat_percent'              => 'decimal:2',
-        'vat'                      => 'decimal:2',
-        'discount_total'           => 'decimal:2',
-        'shipping_total'           => 'decimal:2',
-        'total'                    => 'decimal:2',
-        'refunded_total'           => 'decimal:2',
-        'inventory_finalized_at'   => 'datetime',
-        'inventory_released_at'    => 'datetime',
+        'subtotal' => 'decimal:2',
+        'vat_percent' => 'decimal:2',
+        'vat' => 'decimal:2',
+        'discount_total' => 'decimal:2',
+        'shipping_total' => 'decimal:2',
+        'total' => 'decimal:2',
+        'refunded_total' => 'decimal:2',
+        'inventory_finalized_at' => 'datetime',
+        'inventory_released_at' => 'datetime',
     ];
 
     protected static function boot()
@@ -128,12 +127,12 @@ class Order extends Model implements HasMedia
     {
         return [
             'order_id' => $this->id,
-            'date'     => $this->created_at,
-            'total'    => $this->total,
-            'items'    => $this->items->map(fn ($i) => [
+            'date' => $this->created_at,
+            'total' => $this->total,
+            'items' => $this->items->map(fn ($i) => [
                 'title' => $i->product->title,
                 'price' => $i->price,
-                'qty'   => $i->quantity,
+                'qty' => $i->quantity,
             ]),
         ];
     }

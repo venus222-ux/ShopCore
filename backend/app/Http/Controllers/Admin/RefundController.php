@@ -28,7 +28,7 @@ class RefundController extends Controller
 
         return response()->json([
             'message' => 'Refund successful',
-            'refund'  => $refund,
+            'refund' => $refund,
         ]);
     }
 
@@ -67,7 +67,7 @@ class RefundController extends Controller
 
         return response()->json([
             'message' => 'Refund approved and processed.',
-            'refund'  => $refund,
+            'refund' => $refund,
         ]);
     }
 
@@ -85,7 +85,7 @@ class RefundController extends Controller
 
         return response()->json([
             'message' => 'Refund request rejected.',
-            'refund'  => $refund,
+            'refund' => $refund,
         ]);
     }
 
@@ -111,7 +111,7 @@ class RefundController extends Controller
 
         $media = $refund->getFirstMedia('credit_notes');
 
-        if (!$media) {
+        if (! $media) {
             abort(500, 'Credit note generation failed');
         }
 

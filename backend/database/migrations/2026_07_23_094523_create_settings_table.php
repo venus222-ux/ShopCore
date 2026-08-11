@@ -1,8 +1,10 @@
 <?php
+
 // database/migrations/xxxx_create_settings_table.php
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -18,7 +20,7 @@ return new class extends Migration
 
         // Seed the default so /settings always has a sane value even
         // before an admin ever touches this from CouponsTab.
-        \Illuminate\Support\Facades\DB::table('settings')->insert([
+        DB::table('settings')->insert([
             'key' => 'coupons_enabled',
             'value' => '1',
             'created_at' => now(),

@@ -1,4 +1,5 @@
 <?php
+
 // app/Services/Checkout/DTO/ShippingResult.php
 
 namespace App\Services\Checkout\DTO;

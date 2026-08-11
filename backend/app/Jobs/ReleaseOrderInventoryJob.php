@@ -10,7 +10,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class ReleaseOrderInventoryJob implements ShouldQueue //Eliberează rezervarea de stoc atunci când sesiunea Stripe expiră.
+class ReleaseOrderInventoryJob implements ShouldQueue // Eliberează rezervarea de stoc atunci când sesiunea Stripe expiră.
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 

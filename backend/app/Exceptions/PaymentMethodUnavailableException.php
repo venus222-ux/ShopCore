@@ -4,6 +4,4 @@ namespace App\Exceptions;
 
 use Exception;
 
-class PaymentMethodUnavailableException extends Exception
-{
-}
+class PaymentMethodUnavailableException extends Exception {}

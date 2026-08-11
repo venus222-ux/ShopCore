@@ -11,15 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-Schema::create('traffic_logs', function (Blueprint $table) {
-    $table->id();
-    $table->string('ip')->nullable();
-    $table->string('path')->nullable();
-    $table->string('source')->nullable(); // google, facebook, direct, etc
-    $table->string('user_agent')->nullable();
-    $table->foreignId('user_id')->nullable();
-    $table->timestamps();
-});
+        Schema::create('traffic_logs', function (Blueprint $table) {
+            $table->id();
+            $table->string('ip')->nullable();
+            $table->string('path')->nullable();
+            $table->string('source')->nullable(); // google, facebook, direct, etc
+            $table->string('user_agent')->nullable();
+            $table->foreignId('user_id')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**

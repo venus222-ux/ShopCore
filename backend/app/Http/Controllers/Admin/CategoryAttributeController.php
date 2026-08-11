@@ -16,17 +16,17 @@ class CategoryAttributeController extends Controller
         $assignedIds = $category->attributes()->pluck('attributes.id')->all();
 
         return Attribute::orderBy('name')->get()->map(fn ($attribute) => [
-            'id'         => $attribute->id,
-            'name'       => $attribute->name,
-            'slug'       => $attribute->slug,
-            'assigned'   => in_array($attribute->id, $assignedIds, true),
+            'id' => $attribute->id,
+            'name' => $attribute->name,
+            'slug' => $attribute->slug,
+            'assigned' => in_array($attribute->id, $assignedIds, true),
         ]);
     }
 
     public function sync(Request $request, Category $category)
     {
         $data = $request->validate([
-            'attribute_ids'   => 'array',
+            'attribute_ids' => 'array',
             'attribute_ids.*' => 'integer|exists:attributes,id',
         ]);
 

@@ -1,7 +1,11 @@
 <?php
 
+use App\Providers\AppServiceProvider;
+use App\Providers\HorizonServiceProvider;
+use App\Providers\JWTServiceProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\HorizonServiceProvider::class,
-    App\Providers\JWTServiceProvider::class,
+    AppServiceProvider::class,
+    HorizonServiceProvider::class,
+    JWTServiceProvider::class,
 ];

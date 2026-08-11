@@ -29,7 +29,7 @@ class StripeService
             : 0;
 
         foreach ($order->items as $item) {
-            if (!$item->product) {
+            if (! $item->product) {
                 continue;
             }
 
@@ -82,11 +82,9 @@ class StripeService
 
             'mode' => 'payment',
 
-            'success_url' =>
-                'http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}',
+            'success_url' => 'http://localhost:5173/success?session_id={CHECKOUT_SESSION_ID}',
 
-            'cancel_url' =>
-                'http://localhost:5173/cancel',
+            'cancel_url' => 'http://localhost:5173/cancel',
 
             'metadata' => [
                 'order_id' => (string) $order->id,

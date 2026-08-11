@@ -1,8 +1,9 @@
 <?php
+
 namespace App\Services;
 
-use Elastic\Elasticsearch\ClientBuilder;
 use App\Models\Product;
+use Elastic\Elasticsearch\ClientBuilder;
 use Illuminate\Support\Facades\Log;
 
 class ProductSearchService
@@ -11,7 +12,7 @@ class ProductSearchService
 
     public function __construct()
     {
-        $this->client = \Elastic\Elasticsearch\ClientBuilder::create()
+        $this->client = ClientBuilder::create()
             ->setHosts([config('services.elasticsearch.host')])
             ->build();
     }
@@ -23,24 +24,24 @@ class ProductSearchService
 
             return $this->client->index([
                 'index' => config('services.elasticsearch.index'),
-                'id'    => $product->id,
-                'body'  => [
-                    'title'             => $product->title,
+                'id' => $product->id,
+                'body' => [
+                    'title' => $product->title,
                     'id' => $product->id,
-                    'slug'              => $product->slug,
-                    'description'       => $product->description,
+                    'slug' => $product->slug,
+                    'description' => $product->description,
                     'short_description' => $product->short_description ?? null,
                     'price' => (float) $product->price,
                     'final_price' => (float) $product->final_price,
                     'on_sale' => (bool) $product->hasActiveDiscount(),
-                    'category_id'       => $product->category_id,
-                    'category_name'     => $product->category?->name,
-                    'asset_type'        => $product->asset_type,
-                    'created_at'        => $product->created_at,
-                    'is_published'      => (bool) $product->is_published,
+                    'category_id' => $product->category_id,
+                    'category_name' => $product->category?->name,
+                    'asset_type' => $product->asset_type,
+                    'created_at' => $product->created_at,
+                    'is_published' => (bool) $product->is_published,
 
-                    'preview_url'       => $product->preview_url,
-                    'preview_urls'      => $product->preview_urls,
+                    'preview_url' => $product->preview_url,
+                    'preview_urls' => $product->preview_urls,
 
                     // Facetable attributes gathered from every variant of this
                     // product, deduped. Requires an explicit 'nested' mapping on
@@ -78,44 +79,44 @@ class ProductSearchService
                     'query' => $query,
                     'fields' => ['title^3', 'description'],
                     'fuzziness' => 'AUTO',
-                    'operator' => 'and'
-                ]
+                    'operator' => 'and',
+                ],
             ];
         }
 
         // 🎯 UNIVERSAL FILTERS
-        if (!empty($filters['category'])) {
+        if (! empty($filters['category'])) {
             $filter[] = [
-                'term' => ['category_id' => $filters['category']]
+                'term' => ['category_id' => $filters['category']],
             ];
         }
 
-        if (!empty($filters['asset_type'])) {
+        if (! empty($filters['asset_type'])) {
             $filter[] = [
-                'term' => ['asset_type' => $filters['asset_type']]
+                'term' => ['asset_type' => $filters['asset_type']],
             ];
         }
 
-        if (!empty($filters['min_price']) || !empty($filters['max_price'])) {
+        if (! empty($filters['min_price']) || ! empty($filters['max_price'])) {
             $range = [];
 
-            if (!empty($filters['min_price'])) {
+            if (! empty($filters['min_price'])) {
                 $range['gte'] = $filters['min_price'];
             }
 
-            if (!empty($filters['max_price'])) {
+            if (! empty($filters['max_price'])) {
                 $range['lte'] = $filters['max_price'];
             }
 
             $filter[] = [
                 'range' => [
-                    'price' => $range
-                ]
+                    'price' => $range,
+                ],
             ];
         }
 
         // ⭐ DYNAMIC ATTRIBUTE FILTERS
-        if (!empty($filters['attributes']) && is_array($filters['attributes'])) {
+        if (! empty($filters['attributes']) && is_array($filters['attributes'])) {
             foreach ($filters['attributes'] as $slug => $value) {
                 if ($value === null || $value === '') {
                     continue;
@@ -139,19 +140,19 @@ class ProductSearchService
 
         // ⭐ SORT OPTIONS
         $sortOptions = [
-            'newest'    => ['created_at' => ['order' => 'desc']],
+            'newest' => ['created_at' => ['order' => 'desc']],
             'price_asc' => ['price' => ['order' => 'asc']],
-            'price_desc'=> ['price' => ['order' => 'desc']],
-            '_score'    => '_score',
+            'price_desc' => ['price' => ['order' => 'desc']],
+            '_score' => '_score',
         ];
 
         $sortClause = $query
             ? [
                 $sortOptions['_score'],
-                $sortOptions[$sort] ?? $sortOptions['newest']
+                $sortOptions[$sort] ?? $sortOptions['newest'],
             ]
             : [
-                $sortOptions[$sort] ?? $sortOptions['newest']
+                $sortOptions[$sort] ?? $sortOptions['newest'],
             ];
 
         return $this->client->search([
@@ -163,8 +164,8 @@ class ProductSearchService
                 'query' => [
                     'bool' => [
                         'must' => $must,
-                        'filter' => $filter
-                    ]
+                        'filter' => $filter,
+                    ],
                 ],
 
                 'sort' => $sortClause,
@@ -173,8 +174,8 @@ class ProductSearchService
                     'categories' => [
                         'terms' => [
                             'field' => 'category_id',
-                            'size' => 10
-                        ]
+                            'size' => 10,
+                        ],
                     ],
                     'attributes' => [
                         'nested' => ['path' => 'attributes'],
@@ -190,7 +191,7 @@ class ProductSearchService
                         ],
                     ],
                 ],
-            ]
+            ],
         ]);
     }
 
@@ -199,12 +200,12 @@ class ProductSearchService
         try {
             $this->client->delete([
                 'index' => config('services.elasticsearch.index'),
-                'id'    => $id,
+                'id' => $id,
             ]);
         } catch (\Throwable $e) {
             Log::warning('ES delete failed', [
                 'id' => $id,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
         }
     }
@@ -220,7 +221,7 @@ class ProductSearchService
                 'index' => [
                     '_index' => config('services.elasticsearch.index'),
                     '_id' => $product->id,
-                ]
+                ],
             ];
 
             $params['body'][] = [
@@ -261,7 +262,7 @@ class ProductSearchService
             foreach ($variant->attributeValues as $attributeValue) {
                 $slug = $attributeValue->attribute->slug;
                 $value = $attributeValue->value;
-                $key = $slug . ':' . $value;
+                $key = $slug.':'.$value;
 
                 if (isset($seen[$key])) {
                     continue;
@@ -289,17 +290,17 @@ class ProductSearchService
     {
         return $product->variants->map(function ($variant) {
             return [
-                'id'           => $variant->id,
-                'sku'          => $variant->sku,
-                'price'        => (float) $variant->final_price,
+                'id' => $variant->id,
+                'sku' => $variant->sku,
+                'price' => (float) $variant->final_price,
                 'has_discount' => $variant->hasActiveDiscount(),
-                'is_default'   => (bool) $variant->is_default,
+                'is_default' => (bool) $variant->is_default,
 
                 'attribute_values' => $variant->attributeValues->map(fn ($av) => [
                     'attribute_slug' => $av->attribute->slug,
                     'attribute_name' => $av->attribute->name,
-                    'value'          => $av->value,
-                    'value_id'       => $av->id,
+                    'value' => $av->value,
+                    'value_id' => $av->id,
                 ])->values()->toArray(),
 
                 'in_stock' => $variant->inventory

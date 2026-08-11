@@ -19,15 +19,15 @@ class AttributeController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:100',
-            'type'          => 'required|in:text,number,select,boolean',
+            'name' => 'required|string|max:100',
+            'type' => 'required|in:text,number,select,boolean',
             'is_filterable' => 'boolean|nullable',
         ]);
 
         $attribute = Attribute::create([
-            'name'          => $data['name'],
-            'slug'          => Str::slug($data['name']),
-            'type'          => $data['type'],
+            'name' => $data['name'],
+            'slug' => Str::slug($data['name']),
+            'type' => $data['type'],
             'is_filterable' => $data['is_filterable'] ?? true,
         ]);
 
@@ -37,15 +37,15 @@ class AttributeController extends Controller
     public function update(Request $request, Attribute $attribute)
     {
         $data = $request->validate([
-            'name'          => 'required|string|max:100',
-            'type'          => 'required|in:text,number,select,boolean',
+            'name' => 'required|string|max:100',
+            'type' => 'required|in:text,number,select,boolean',
             'is_filterable' => 'boolean|nullable',
         ]);
 
         $attribute->update([
-            'name'          => $data['name'],
-            'slug'          => Str::slug($data['name']),
-            'type'          => $data['type'],
+            'name' => $data['name'],
+            'slug' => Str::slug($data['name']),
+            'type' => $data['type'],
             'is_filterable' => $data['is_filterable'] ?? $attribute->is_filterable,
         ]);
 

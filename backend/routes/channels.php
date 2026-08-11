@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Broadcast;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
@@ -10,14 +10,16 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 
 Broadcast::channel('product.{productId}', function ($user, $productId) {
     try {
-        if (!$user) {
+        if (! $user) {
             Log::info("Broadcast denied: No authenticated user for product {$productId}");
+
             return false;
         }
 
         // Admin check (safe)
         if ($user->hasRole('admin') || ($user->role === 'admin')) {
             Log::info("Broadcast allowed: Admin {$user->id} for product {$productId}");
+
             return true;
         }
 
@@ -28,12 +30,13 @@ Broadcast::channel('product.{productId}', function ($user, $productId) {
             ->where('order_items.product_id', $productId)
             ->exists();
 
-        Log::info("Broadcast check - Product {$productId} for User {$user->id}: " . ($hasPurchased ? 'ALLOWED' : 'DENIED'));
+        Log::info("Broadcast check - Product {$productId} for User {$user->id}: ".($hasPurchased ? 'ALLOWED' : 'DENIED'));
 
         return $hasPurchased;
 
-    } catch (\Throwable $e) {
-        Log::error("Channel auth error for product {$productId}: " . $e->getMessage());
+    } catch (Throwable $e) {
+        Log::error("Channel auth error for product {$productId}: ".$e->getMessage());
+
         return false;
     }
 });

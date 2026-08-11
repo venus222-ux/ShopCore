@@ -13,13 +13,13 @@ class AttributeValueController extends Controller
     public function store(Request $request, Attribute $attribute)
     {
         $data = $request->validate([
-            'value'      => 'required|string|max:100',
+            'value' => 'required|string|max:100',
             'sort_order' => 'integer|nullable',
-        ]); 
+        ]);
 
         $value = $attribute->values()->create([
-            'value'      => $data['value'],
-            'slug'       => Str::slug($data['value']),
+            'value' => $data['value'],
+            'slug' => Str::slug($data['value']),
             'sort_order' => $data['sort_order'] ?? 0,
         ]);
 
@@ -29,13 +29,13 @@ class AttributeValueController extends Controller
     public function update(Request $request, AttributeValue $attributeValue)
     {
         $data = $request->validate([
-            'value'      => 'required|string|max:100',
+            'value' => 'required|string|max:100',
             'sort_order' => 'integer|nullable',
         ]);
 
         $attributeValue->update([
-            'value'      => $data['value'],
-            'slug'       => Str::slug($data['value']),
+            'value' => $data['value'],
+            'slug' => Str::slug($data['value']),
             'sort_order' => $data['sort_order'] ?? $attributeValue->sort_order,
         ]);
 

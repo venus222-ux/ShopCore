@@ -5,8 +5,11 @@ namespace App\Services\Checkout;
 use App\Http\Requests\CheckoutRequest;
 use App\Models\User;
 use App\Services\Checkout\DTO\CheckoutResult;
+use App\Services\Checkout\DTO\ShippingResult;
 use App\Services\InventoryService;
+use App\Services\Payment\CashPaymentHandler;
 use App\Services\Payment\PaymentHandlerResolver;
+use App\Services\TaxService;
 use Illuminate\Support\Facades\DB;
 
 class CheckoutService
@@ -25,14 +28,14 @@ class CheckoutService
     {
         $validated = $request->validated();
 
-        $billing          = $validated['billing'];
-        $shipping         = $validated['shipping'] ?? [];
-        $saveToProfile    = $validated['save_to_profile'] ?? false;
-        $couponCode       = $validated['coupon_code'] ?? null;
+        $billing = $validated['billing'];
+        $shipping = $validated['shipping'] ?? [];
+        $saveToProfile = $validated['save_to_profile'] ?? false;
+        $couponCode = $validated['coupon_code'] ?? null;
         $shippingMethodId = $validated['shipping_method_id'] ?? null;
-        $paymentMethod    = $validated['payment_method'];
+        $paymentMethod = $validated['payment_method'];
         $requiresShipping = $request->requiresShipping();
-        $sameAsBilling    = $request->sameAsBilling();
+        $sameAsBilling = $request->sameAsBilling();
 
         $paymentHandler = $this->paymentHandlerResolver->resolve($paymentMethod);
 
@@ -55,18 +58,18 @@ class CheckoutService
 
             $shippingResult = $requiresShipping
                 ? $this->shippingCostResolver->resolve($shippingMethodId)
-                : \App\Services\Checkout\DTO\ShippingResult::none();
+                : ShippingResult::none();
 
             $taxableSubtotal = round($cart->subtotal - $couponResult->discountTotal, 2);
-            $vat             = \App\Services\TaxService::calculateVat($taxableSubtotal);
-            $vatPercent      = \App\Services\TaxService::vatPercent();
+            $vat = TaxService::calculateVat($taxableSubtotal);
+            $vatPercent = TaxService::vatPercent();
 
-            $codFee = $paymentMethod === 'cash' && $paymentHandler instanceof \App\Services\Payment\CashPaymentHandler
+            $codFee = $paymentMethod === 'cash' && $paymentHandler instanceof CashPaymentHandler
                 ? $paymentHandler->fee()
                 : 0.0;
 
             $total = round(
-                \App\Services\TaxService::calculateTotal($taxableSubtotal) + $shippingResult->cost + $codFee,
+                TaxService::calculateTotal($taxableSubtotal) + $shippingResult->cost + $codFee,
                 2
             );
 

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-
 use App\Http\Controllers\Controller;
 use App\Models\Refund;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -34,12 +33,10 @@ class RefundController extends Controller
 
         $media = $refund->getFirstMedia('credit_notes');
 
-        if (!$media) {
+        if (! $media) {
             abort(500, 'Credit note generation failed');
         }
 
         return response()->download($media->getPath(), $fileName);
     }
 }
-
-

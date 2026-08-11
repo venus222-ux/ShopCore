@@ -16,7 +16,7 @@ class ProductMediaService
 
         $files = request()->file('preview_images');
 
-        if (!$files) {
+        if (! $files) {
             return;
         }
 
@@ -29,7 +29,7 @@ class ProductMediaService
                 $media = $product->addMedia($file)->toMediaCollection('previews');
                 Log::info("Image {$index} added", [
                     'filename' => $file->getClientOriginalName(),
-                    'media_id' => $media->id
+                    'media_id' => $media->id,
                 ]);
             }
         }

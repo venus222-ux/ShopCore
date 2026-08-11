@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ProductResource;
-use App\Models\Product;
 use Illuminate\Http\Request;
 
 class WishlistController extends Controller
@@ -23,7 +22,7 @@ class WishlistController extends Controller
     public function toggle(Request $request)
     {
         $request->validate([
-            'product_id' => ['required', 'exists:products,id']
+            'product_id' => ['required', 'exists:products,id'],
         ]);
 
         $user = auth()->user();
@@ -38,7 +37,7 @@ class WishlistController extends Controller
 
             return response()->json([
                 'message' => 'Removed from wishlist',
-                'wishlisted' => false
+                'wishlisted' => false,
             ]);
         }
 
@@ -47,7 +46,7 @@ class WishlistController extends Controller
 
         return response()->json([
             'message' => 'Added to wishlist',
-            'wishlisted' => true
+            'wishlisted' => true,
         ]);
     }
 
@@ -59,7 +58,7 @@ class WishlistController extends Controller
             ->detach($productId);
 
         return response()->json([
-            'message' => 'Removed from wishlist'
+            'message' => 'Removed from wishlist',
         ]);
     }
 }

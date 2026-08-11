@@ -12,7 +12,6 @@ class MongoLogService
     }
 }
 
-
 /***
  * MongoLogService este clasa responsabilă doar de salvarea datelor în MongoDB.
 * Metoda logUpload(array $data) primește un array cu informații despre upload și le salvează în colecția MongoDB folosind modelul MongoLog.

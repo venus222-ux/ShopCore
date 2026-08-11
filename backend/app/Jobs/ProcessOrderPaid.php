@@ -2,15 +2,15 @@
 
 namespace App\Jobs;
 
-use App\Models\Order;
 use App\Events\OrderPaid;
+use App\Models\Order;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 
-class ProcessOrderPaid implements ShouldQueue //Principala responsabilitate este să declanșeze evenimentul OrderPaid.
+class ProcessOrderPaid implements ShouldQueue // Principala responsabilitate este să declanșeze evenimentul OrderPaid.
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 

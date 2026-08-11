@@ -6,15 +6,8 @@ use App\Jobs\ReleaseOrderInventoryJob;
 use App\Models\Order;
 use Illuminate\Console\Command;
 
-//blocarea stocului pe termen nedefinit pentru comenzile care au expirat fără notificare
-class ReleaseStaleOrderReservations extends Command //commanda cleanup job
-{
-    protected $signature = 'orders:release-stale-reservations
-        {--hours=24 : Orders pending longer than this, with no webhook resolution, are released}';
-
-    protected $description = 'Release stock reservations for pending orders whose Stripe session likely expired without us hearing about it. Safety net alongside the checkout.session.expired webhook handler.';
-
-    class ReleaseStaleOrderReservations extends Command
+// blocarea stocului pe termen nedefinit pentru comenzile care au expirat fără notificare
+class ReleaseStaleOrderReservations extends Command
 {
     protected $signature = 'orders:release-stale-reservations
         {--hours=24 : Orders pending longer than this, with no webhook resolution, are released}';
@@ -38,6 +31,7 @@ class ReleaseStaleOrderReservations extends Command //commanda cleanup job
 
         if ($orders->isEmpty()) {
             $this->info('No stale pending orders found.');
+
             return self::SUCCESS;
         }
 
@@ -49,7 +43,6 @@ class ReleaseStaleOrderReservations extends Command //commanda cleanup job
 
         return self::SUCCESS;
     }
-}
 }
 
 /*Acest cod definește un Artisan Command (comandă de consolă) în Laravel,

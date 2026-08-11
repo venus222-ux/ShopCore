@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
-class ProductVariant extends Model  //Acesta gestionează variantele de produs (diferite culori, mărimi etc.) și logica de preț.
+class ProductVariant extends Model  // Acesta gestionează variantele de produs (diferite culori, mărimi etc.) și logica de preț.
 {
     use HasFactory;
 
@@ -21,12 +21,12 @@ class ProductVariant extends Model  //Acesta gestionează variantele de produs (
     ];
 
     protected $casts = [
-        'price'                => 'decimal:2',
-        'discount_percentage'  => 'decimal:2',
-        'discount_fixed'       => 'decimal:2',
-        'discount_starts_at'   => 'datetime:Y-m-d H:i:s',
-        'discount_ends_at'     => 'datetime:Y-m-d H:i:s',
-        'is_default'           => 'boolean',
+        'price' => 'decimal:2',
+        'discount_percentage' => 'decimal:2',
+        'discount_fixed' => 'decimal:2',
+        'discount_starts_at' => 'datetime:Y-m-d H:i:s',
+        'discount_ends_at' => 'datetime:Y-m-d H:i:s',
+        'is_default' => 'boolean',
     ];
 
     protected static function booted(): void
@@ -63,7 +63,7 @@ class ProductVariant extends Model  //Acesta gestionează variantele de produs (
     // variant leaves its own pricing columns null, so a single-variant
     // (legacy/digital) product behaves exactly like Product's own accessors did.
 
-    public function getEffectivePriceAttribute(): float  //fallback la prețul produsului părinte dacă varianta nu are preț propriu.
+    public function getEffectivePriceAttribute(): float  // fallback la prețul produsului părinte dacă varianta nu are preț propriu.
     {
         return (float) ($this->attributes['price'] ?? $this->product?->price ?? 0);
     }
@@ -120,12 +120,12 @@ class ProductVariant extends Model  //Acesta gestionează variantele de produs (
     {
         $now = now();
         $starts = $this->attributes['discount_starts_at'] ?? $this->product?->discount_starts_at ?? null;
-        $ends   = $this->attributes['discount_ends_at'] ?? $this->product?->discount_ends_at ?? null;
+        $ends = $this->attributes['discount_ends_at'] ?? $this->product?->discount_ends_at ?? null;
 
-        if (!empty($starts) && $now->lt($starts)) {
+        if (! empty($starts) && $now->lt($starts)) {
             return false;
         }
-        if (!empty($ends) && $now->gt($ends)) {
+        if (! empty($ends) && $now->gt($ends)) {
             return false;
         }
 

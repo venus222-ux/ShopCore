@@ -20,6 +20,7 @@ class BackfillDefaultVariants extends Command
 
         if ($total === 0) {
             $this->info('No products found - nothing to backfill.');
+
             return self::SUCCESS;
         }
 
@@ -39,13 +40,13 @@ class BackfillDefaultVariants extends Command
                         $skipped++;
                     } else {
                         $variant = $product->variants()->create([
-                            'sku'                 => $this->skuFor($product),
-                            'price'                => $product->price,
-                            'discount_percentage'  => $product->discount_percentage,
-                            'discount_fixed'       => $product->discount_fixed,
-                            'discount_starts_at'   => $product->discount_starts_at,
-                            'discount_ends_at'     => $product->discount_ends_at,
-                            'is_default'           => true,
+                            'sku' => $this->skuFor($product),
+                            'price' => $product->price,
+                            'discount_percentage' => $product->discount_percentage,
+                            'discount_fixed' => $product->discount_fixed,
+                            'discount_starts_at' => $product->discount_starts_at,
+                            'discount_ends_at' => $product->discount_ends_at,
+                            'is_default' => true,
                         ]);
                         $created++;
                     }
@@ -54,8 +55,8 @@ class BackfillDefaultVariants extends Command
                     // vertical flips track_stock on and sets a real quantity.
                     $variant->inventory()->firstOrCreate([], [
                         'track_stock' => false,
-                        'quantity'    => 0,
-                        'reserved'    => 0,
+                        'quantity' => 0,
+                        'reserved' => 0,
                     ]);
                 });
 
@@ -75,6 +76,6 @@ class BackfillDefaultVariants extends Command
         // Unique + stable, but still readable - fall back to id if slug is empty
         $base = $product->slug ?: (string) $product->id;
 
-        return 'SKU-' . strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)) . '-' . $product->id;
+        return 'SKU-'.strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)).'-'.$product->id;
     }
 }

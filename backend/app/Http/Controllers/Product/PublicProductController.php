@@ -14,36 +14,36 @@ class PublicProductController extends Controller
         $perPage = (int) $request->input('per_page', 12);
 
         $products = Product::with([
-                'category',
-                // Same relations as show() - the ProductCard now needs the
-                // variant selector inline, so listing endpoints can no
-                // longer skip this (previously the empty-array fallback in
-                // ProductResource was relied on here to avoid N+1, but that
-                // just meant the card silently had no variants at all).
-                'variants.attributeValues.attribute',
-                'variants.inventory',
-            ])
+            'category',
+            // Same relations as show() - the ProductCard now needs the
+            // variant selector inline, so listing endpoints can no
+            // longer skip this (previously the empty-array fallback in
+            // ProductResource was relied on here to avoid N+1, but that
+            // just meant the card silently had no variants at all).
+            'variants.attributeValues.attribute',
+            'variants.inventory',
+        ])
             ->where('is_published', true)
             ->latest()
             ->paginate($perPage);
 
         return ProductResource::collection($products)
             ->additional([
-                'total'        => $products->total(),
+                'total' => $products->total(),
                 'current_page' => $products->currentPage(),
-                'per_page'     => $products->perPage(),
-                'last_page'    => $products->lastPage(),
+                'per_page' => $products->perPage(),
+                'last_page' => $products->lastPage(),
             ]);
     }
 
     public function show($slug)
     {
         $product = Product::with([
-                'category',
-                'media',
-                'variants.attributeValues.attribute',
-                'variants.inventory',
-            ])
+            'category',
+            'media',
+            'variants.attributeValues.attribute',
+            'variants.inventory',
+        ])
             ->where('slug', $slug)
             ->where('is_published', true)
             ->firstOrFail();

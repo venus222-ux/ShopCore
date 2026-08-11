@@ -29,6 +29,7 @@ class ReleaseStaleCashOrders extends Command
 
         if ($orders->isEmpty()) {
             $this->info('No stale cash orders found.');
+
             return self::SUCCESS;
         }
 

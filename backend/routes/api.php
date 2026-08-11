@@ -1,37 +1,35 @@
 <?php
 
-use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
-use App\Http\Controllers\Admin\ProductController;
+use App\Http\Controllers\AddressController;
 use App\Http\Controllers\Admin\AdminController;
-use App\Http\Controllers\Admin\DownloadController;
-use App\Http\Controllers\Admin\RefundController;
 use App\Http\Controllers\Admin\AttributeController;
 use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\CategoryAttributeController;
+use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
+use App\Http\Controllers\Admin\CouponController as AdminCouponController;
+use App\Http\Controllers\Admin\DownloadController;
+use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
+use App\Http\Controllers\Admin\RefundController;
+use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Http\Controllers\Admin\ShippingMethodController as AdminShippingMethodController;
-use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\AddressController;
-use App\Http\Controllers\CouponController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CouponController;
+use App\Http\Controllers\ImageProxyController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\SearchController;
-use App\Http\Controllers\Product\PublicProductController;
 use App\Http\Controllers\Product\CategoryController;
+use App\Http\Controllers\Product\PublicProductController;
+use App\Http\Controllers\SearchController;
+use App\Http\Controllers\ShippingMethodController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\UserRefundController;
 use App\Http\Controllers\WishlistController;
-use App\Http\Controllers\Admin\CouponController as AdminCouponController;
-use App\Http\Controllers\Admin\SettingsController as AdminSettingsController;
 use App\Models\Setting;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Route;
 
-
-
 Broadcast::routes(['middleware' => ['auth:api']]);
-
 
 // Public routes
 Route::post('/register', [AuthController::class, 'register']);
@@ -47,15 +45,15 @@ Route::get('/shipping-methods', [ShippingMethodController::class, 'index']);
 
 Route::get('/settings', function () {
     return [
-        'vat_percent'         => config('tax.vat_percent'),
-        'coupons_enabled'     => (bool) (int) Setting::get('coupons_enabled', '1'),
-        'cod_enabled'         => (bool) (int) Setting::get('cod_enabled', '1'),
+        'vat_percent' => config('tax.vat_percent'),
+        'coupons_enabled' => (bool) (int) Setting::get('coupons_enabled', '1'),
+        'cod_enabled' => (bool) (int) Setting::get('cod_enabled', '1'),
         'cod_max_order_value' => (float) Setting::get('cod_max_order_value', '500'),
-        'cod_fee'             => (float) Setting::get('cod_fee', '0'),
+        'cod_fee' => (float) Setting::get('cod_fee', '0'),
     ];
 });
 
-Route::get('/images/{path}', [App\Http\Controllers\ImageProxyController::class, 'show'])
+Route::get('/images/{path}', [ImageProxyController::class, 'show'])
     ->where('path', '.*');
 
 // Protected routes with auth + throttle
@@ -93,9 +91,7 @@ Route::middleware(['jwt.auth'])->group(function () {
     Route::post('/orders/{orderId}/refund-request', [UserRefundController::class, 'store']);
     Route::get('/refunds/{id}/credit-note', [UserRefundController::class, 'creditNote']);
 
-
 });
-
 
 // Admin routes
 Route::prefix('admin')->middleware(['jwt.auth', 'role:admin'])->group(function () {
@@ -150,8 +146,8 @@ Route::prefix('admin')->middleware(['jwt.auth', 'role:admin'])->group(function (
     Route::put('/products/{product}', [ProductController::class, 'update']);
     Route::delete('/products/{product}', [ProductController::class, 'destroy']);
     Route::delete('/products/{product}/media/{media}', [ProductController::class, 'deleteMedia'])
-     ->name('admin.products.media.delete');
-     Route::get('/products/{product}', [ProductController::class, 'show']);
+        ->name('admin.products.media.delete');
+    Route::get('/products/{product}', [ProductController::class, 'show']);
 
     Route::get('/logs', [AdminController::class, 'logs']);
     Route::delete('/logs/{id}', [AdminController::class, 'deleteLog']);
@@ -175,18 +171,15 @@ Route::prefix('admin')->middleware(['jwt.auth', 'role:admin'])->group(function (
     Route::put('/settings', [AdminSettingsController::class, 'update']);
 });
 
-
-
 // PUBLIC SHOP PAGE MARKETPLACE
 Route::get('/products', [PublicProductController::class, 'index']);
 Route::get('/products/{slug}', [PublicProductController::class, 'show']);
-//Dedicated Search Endpoint
+// Dedicated Search Endpoint
 Route::get('/search', [SearchController::class, 'search']);
 
-//Categories
+// Categories
 Route::get('/categories', [CategoryController::class, 'index']);
 Route::get('/categories/{category:slug}/products', [CategoryController::class, 'products']);
-
 
 Route::prefix('wishlist')->group(function () {
     Route::get('/', [WishlistController::class, 'index']);

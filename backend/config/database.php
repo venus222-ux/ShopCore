@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Support\Str;
+use Pdo\Mysql;
 
 return [
 
@@ -59,7 +59,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -79,7 +79,7 @@ return [
             'strict' => true,
             'engine' => null,
             'options' => extension_loaded('pdo_mysql') ? array_filter([
-                (PHP_VERSION_ID >= 80500 ? \Pdo\Mysql::ATTR_SSL_CA : \PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
+                (PHP_VERSION_ID >= 80500 ? Mysql::ATTR_SSL_CA : PDO::MYSQL_ATTR_SSL_CA) => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
         ],
 
@@ -115,17 +115,17 @@ return [
 
         // 🟢 MongoDB connection
         'mongodb' => [
-           'driver'   => 'mongodb',
-           // Force it to use the environment variable,
-           // and if the environment variable is missing, default to the bridge
-            'host'     => env('DB_MONGO_HOST', 'host.docker.internal'),
-            'port'     => env('DB_MONGO_PORT', 27017),
+            'driver' => 'mongodb',
+            // Force it to use the environment variable,
+            // and if the environment variable is missing, default to the bridge
+            'host' => env('DB_MONGO_HOST', 'host.docker.internal'),
+            'port' => env('DB_MONGO_PORT', 27017),
             'database' => env('DB_MONGO_DATABASE', 'shopcore'),
             'username' => env('DB_MONGO_USERNAME', ''),
             'password' => env('DB_MONGO_PASSWORD', ''),
-            'options'  => [
-                'database' => env('DB_MONGO_AUTH_DB', 'admin') // authentication database
-            ]
+            'options' => [
+                'database' => env('DB_MONGO_AUTH_DB', 'admin'), // authentication database
+            ],
         ],
 
     ],
@@ -156,22 +156,22 @@ return [
     | such as Memcached. You may define your connection settings here.
     |
     */
-'redis' => [
-    'client' => env('REDIS_CLIENT', 'phpredis'),
+    'redis' => [
+        'client' => env('REDIS_CLIENT', 'phpredis'),
 
-    'default' => [
-        // If we are on Windows (PHP_OS_FAMILY), use 127.0.0.1. Otherwise, use the Docker container name.
-        'host' => (PHP_OS_FAMILY === 'Windows') ? '127.0.0.1' : 'shopcore_redis',
-        'password' => env('REDIS_PASSWORD', null),
-        'port' => (PHP_OS_FAMILY === 'Windows') ? '6381' : '6379',
-        'database' => env('REDIS_DB', '0'),
-    ],
+        'default' => [
+            // If we are on Windows (PHP_OS_FAMILY), use 127.0.0.1. Otherwise, use the Docker container name.
+            'host' => (PHP_OS_FAMILY === 'Windows') ? '127.0.0.1' : 'shopcore_redis',
+            'password' => env('REDIS_PASSWORD', null),
+            'port' => (PHP_OS_FAMILY === 'Windows') ? '6381' : '6379',
+            'database' => env('REDIS_DB', '0'),
+        ],
 
-    'horizon' => [
-        'host' => (PHP_OS_FAMILY === 'Windows') ? '127.0.0.1' : 'shopcore_redis',
-        'password' => env('REDIS_PASSWORD', null),
-        'port' => (PHP_OS_FAMILY === 'Windows') ? '6381' : '6379',
-        'database' => env('REDIS_DB', '0'),
+        'horizon' => [
+            'host' => (PHP_OS_FAMILY === 'Windows') ? '127.0.0.1' : 'shopcore_redis',
+            'password' => env('REDIS_PASSWORD', null),
+            'port' => (PHP_OS_FAMILY === 'Windows') ? '6381' : '6379',
+            'database' => env('REDIS_DB', '0'),
+        ],
     ],
-],
 ];

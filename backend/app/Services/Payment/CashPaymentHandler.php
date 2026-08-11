@@ -19,11 +19,11 @@ class CashPaymentHandler implements PaymentHandler
 
     public function isAvailableFor(bool $requiresShipping, float $orderTotal): bool
     {
-        if (!(bool) (int) Setting::get('cod_enabled', '1')) {
+        if (! (bool) (int) Setting::get('cod_enabled', '1')) {
             return false;
         }
 
-        if (!$requiresShipping) {
+        if (! $requiresShipping) {
             return false;
         }
 

@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Stripe\Webhook;
-use Stripe\Checkout\Session as StripeSession;
+use App\Jobs\ReleaseOrderInventoryJob;
 use App\Models\Order;
 use App\Models\Refund;
 use App\Services\OrderPaymentService;
 use App\Services\RefundService;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use App\Jobs\ReleaseOrderInventoryJob;
+use Stripe\Checkout\Session as StripeSession;
+use Stripe\Stripe;
+use Stripe\Webhook;
 use Throwable;
 
 class StripeWebhookController extends Controller // Acesta este controller-ul care primește webhook-urile de la Stripe
@@ -20,7 +21,7 @@ class StripeWebhookController extends Controller // Acesta este controller-ul ca
         OrderPaymentService $orderPaymentService,
         RefundService $refundService
     ) {
-        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
+        Stripe::setApiKey(config('services.stripe.secret'));
 
         Log::info('--- WEBHOOK HIT ---');
 
@@ -31,7 +32,8 @@ class StripeWebhookController extends Controller // Acesta este controller-ul ca
             $webhookSecret = config('services.stripe.webhook_secret');
             $event = Webhook::constructEvent($payload, $sigHeader, $webhookSecret); // Verifică dacă cererea vine într-adevăr de la Stripe.
         } catch (Throwable $e) {
-            Log::error('❌ Webhook signature verification FAILED: ' . $e->getMessage());
+            Log::error('❌ Webhook signature verification FAILED: '.$e->getMessage());
+
             return response('Invalid signature', 400);
         }
 
@@ -55,8 +57,9 @@ class StripeWebhookController extends Controller // Acesta este controller-ul ca
 
                 $order = Order::where('stripe_session_id', $sessionId)->first();
 
-                if (!$order) {
+                if (! $order) {
                     Log::warning('Order not found for session', ['session_id' => $sessionId]);
+
                     return response()->json(['status' => 'order_not_found'], 200);
                 }
 
@@ -69,9 +72,9 @@ class StripeWebhookController extends Controller // Acesta este controller-ul ca
                 // truth for what "an order got paid" means and does.
                 $orderPaymentService->markPaid($order, $paymentIntentId);
             } catch (Throwable $e) {
-                Log::error('❌ FATAL ERROR in StripeWebhookController: ' . $e->getMessage(), [
-                    'file'  => $e->getFile(),
-                    'line'  => $e->getLine(),
+                Log::error('❌ FATAL ERROR in StripeWebhookController: '.$e->getMessage(), [
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
                     'trace' => $e->getTraceAsString(),
                 ]);
 
@@ -104,7 +107,7 @@ class StripeWebhookController extends Controller // Acesta este controller-ul ca
 
             if ($event->type === 'refund.updated') {
                 $stripeRefundId = $event->data->object->id ?? null;
-            } elseif (!empty($event->data->object->refunds->data)) {
+            } elseif (! empty($event->data->object->refunds->data)) {
                 $stripeRefundId = $event->data->object->refunds->data[0]->id;
             }
 

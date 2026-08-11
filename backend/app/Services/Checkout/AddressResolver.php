@@ -9,27 +9,27 @@ class AddressResolver
 {
     public function resolveBilling(User $user, array $billing, bool $saveToProfile): Address
     {
-        if (!empty($billing['address_id'])) {
+        if (! empty($billing['address_id'])) {
             return Address::where('user_id', $user->id)
                 ->where('type', 'billing')
                 ->findOrFail($billing['address_id']);
         }
 
         return Address::create([
-            'user_id'        => $user->id,
-            'type'           => 'billing',
-            'first_name'     => $billing['first_name'],
-            'last_name'      => $billing['last_name'],
-            'company_name'   => $billing['company_name'] ?? null,
-            'vat_number'     => $billing['vat_number'] ?? null,
+            'user_id' => $user->id,
+            'type' => 'billing',
+            'first_name' => $billing['first_name'],
+            'last_name' => $billing['last_name'],
+            'company_name' => $billing['company_name'] ?? null,
+            'vat_number' => $billing['vat_number'] ?? null,
             'address_line_1' => $billing['address_line_1'],
             'address_line_2' => $billing['address_line_2'] ?? null,
-            'city'           => $billing['city'],
-            'state'          => $billing['state'] ?? null,
-            'postal_code'    => $billing['postal_code'],
-            'country'        => $billing['country'],
-            'phone'          => $billing['phone'] ?? null,
-            'is_default'     => $saveToProfile,
+            'city' => $billing['city'],
+            'state' => $billing['state'] ?? null,
+            'postal_code' => $billing['postal_code'],
+            'country' => $billing['country'],
+            'phone' => $billing['phone'] ?? null,
+            'is_default' => $saveToProfile,
         ]);
     }
 
@@ -51,27 +51,27 @@ class AddressResolver
             return $billingAddress;
         }
 
-        if (!empty($shipping['address_id'])) {
+        if (! empty($shipping['address_id'])) {
             return Address::where('user_id', $user->id)
                 ->where('type', 'shipping')
                 ->findOrFail($shipping['address_id']);
         }
 
         return Address::create([
-            'user_id'               => $user->id,
-            'type'                  => 'shipping',
-            'first_name'            => $shipping['first_name'],
-            'last_name'             => $shipping['last_name'],
-            'company_name'          => $shipping['company_name'] ?? null,
-            'address_line_1'        => $shipping['address_line_1'],
-            'address_line_2'        => $shipping['address_line_2'] ?? null,
-            'city'                  => $shipping['city'],
-            'state'                 => $shipping['state'] ?? null,
-            'postal_code'           => $shipping['postal_code'],
-            'country'               => $shipping['country'],
-            'phone'                 => $shipping['phone'] ?? null,
+            'user_id' => $user->id,
+            'type' => 'shipping',
+            'first_name' => $shipping['first_name'],
+            'last_name' => $shipping['last_name'],
+            'company_name' => $shipping['company_name'] ?? null,
+            'address_line_1' => $shipping['address_line_1'],
+            'address_line_2' => $shipping['address_line_2'] ?? null,
+            'city' => $shipping['city'],
+            'state' => $shipping['state'] ?? null,
+            'postal_code' => $shipping['postal_code'],
+            'country' => $shipping['country'],
+            'phone' => $shipping['phone'] ?? null,
             'delivery_instructions' => $shipping['delivery_instructions'] ?? null,
-            'is_default'            => $saveToProfile,
+            'is_default' => $saveToProfile,
         ]);
     }
 }

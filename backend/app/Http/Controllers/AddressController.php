@@ -23,7 +23,7 @@ class AddressController extends Controller
     {
         $data = $this->validated($request);
 
-        if (!empty($data['is_default'])) {
+        if (! empty($data['is_default'])) {
             $this->unsetOtherDefaults($data['type']);
         }
 
@@ -38,7 +38,7 @@ class AddressController extends Controller
 
         $data = $this->validated($request, $address);
 
-        if (!empty($data['is_default'])) {
+        if (! empty($data['is_default'])) {
             $this->unsetOtherDefaults($data['type'], $address->id);
         }
 
@@ -68,22 +68,22 @@ class AddressController extends Controller
         $type = $request->input('type', $existing?->type);
 
         return $request->validate([
-            'type'                   => 'required|in:billing,shipping',
-            'label'                  => 'nullable|string|max:100',
-            'first_name'             => 'required|string|max:100',
-            'last_name'              => 'required|string|max:100',
-            'company_name'           => 'nullable|string|max:255',
-            'vat_number'             => 'nullable|string|max:50',
-            'address_line_1'         => 'required|string|max:255',
-            'address_line_2'         => 'nullable|string|max:255',
-            'city'                   => 'required|string|max:100',
-            'state'                  => 'nullable|string|max:100',
-            'postal_code'            => 'required|string|max:20',
-            'country'                => 'required|string|size:2',
+            'type' => 'required|in:billing,shipping',
+            'label' => 'nullable|string|max:100',
+            'first_name' => 'required|string|max:100',
+            'last_name' => 'required|string|max:100',
+            'company_name' => 'nullable|string|max:255',
+            'vat_number' => 'nullable|string|max:50',
+            'address_line_1' => 'required|string|max:255',
+            'address_line_2' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'postal_code' => 'required|string|max:20',
+            'country' => 'required|string|size:2',
             // phone is mandatory for shipping (couriers need it), optional for billing
-            'phone'                  => $type === 'shipping' ? 'required|string|max:30' : 'nullable|string|max:30',
-            'delivery_instructions'  => 'nullable|string|max:500',
-            'is_default'             => 'boolean|nullable',
+            'phone' => $type === 'shipping' ? 'required|string|max:30' : 'nullable|string|max:30',
+            'delivery_instructions' => 'nullable|string|max:500',
+            'is_default' => 'boolean|nullable',
         ]);
     }
 

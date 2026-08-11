@@ -9,18 +9,18 @@ class ProductVariantResource extends JsonResource
     public function toArray($request): array
     {
         return [
-            'id'           => $this->id,
-            'sku'          => $this->sku,
-            'price'        => (float) $this->final_price,
+            'id' => $this->id,
+            'sku' => $this->sku,
+            'price' => (float) $this->final_price,
             'has_discount' => $this->hasActiveDiscount(),
-            'is_default'   => (bool) $this->is_default,
+            'is_default' => (bool) $this->is_default,
 
             'attribute_values' => $this->whenLoaded('attributeValues', function () {
                 return $this->attributeValues->map(fn ($av) => [
                     'attribute_slug' => $av->attribute->slug,
                     'attribute_name' => $av->attribute->name,
-                    'value'          => $av->value,
-                    'value_id'       => $av->id,
+                    'value' => $av->value,
+                    'value_id' => $av->id,
                 ]);
             }),
 

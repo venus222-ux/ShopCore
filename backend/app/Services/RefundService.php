@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
-use Stripe\Stripe;
-use Stripe\Refund as StripeRefund;
-use Stripe\PaymentIntent;
-use Stripe\Checkout\Session as StripeSession;
-use App\Models\Order;
-use App\Models\Refund;
-use App\Events\Refund\RefundRequested;
 use App\Events\Refund\RefundApproved;
 use App\Events\Refund\RefundRejected;
+use App\Events\Refund\RefundRequested;
+use App\Models\Order;
+use App\Models\Refund;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Stripe\Checkout\Session as StripeSession;
+use Stripe\PaymentIntent;
+use Stripe\Refund as StripeRefund;
+use Stripe\Stripe;
 
 class RefundService
 {
@@ -49,7 +49,7 @@ class RefundService
 
     public function approveRequest(Refund $request): Refund
     {
-        if (!$request->isRequested()) {
+        if (! $request->isRequested()) {
             throw new \Exception('This refund request has already been processed.');
         }
 
@@ -63,11 +63,11 @@ class RefundService
             return $this->finalizeCashRefund($request, $order);
         }
 
-        if (empty($order->payment_intent_id) && !empty($order->stripe_session_id)) {
+        if (empty($order->payment_intent_id) && ! empty($order->stripe_session_id)) {
             $this->recoverPaymentIntent($order);
         }
 
-        if (!$order->payment_intent_id) {
+        if (! $order->payment_intent_id) {
             throw new \Exception('Missing payment intent - cannot refund.');
         }
 
@@ -82,10 +82,10 @@ class RefundService
 
             $stripeRefund = StripeRefund::create([
                 'payment_intent' => $lockedOrder->payment_intent_id,
-                'amount'         => (int) round($request->amount * 100),
-                'metadata'       => [
+                'amount' => (int) round($request->amount * 100),
+                'metadata' => [
                     'order_id' => (string) $lockedOrder->id,
-                    'reason'   => $request->reason ?? '',
+                    'reason' => $request->reason ?? '',
                 ],
             ]);
 
@@ -112,7 +112,7 @@ class RefundService
 
     public function rejectRequest(Refund $request, ?string $adminNote = null): Refund
     {
-        if (!$request->isRequested()) {
+        if (! $request->isRequested()) {
             throw new \Exception('This refund request has already been processed.');
         }
 
@@ -163,11 +163,11 @@ class RefundService
             });
         }
 
-        if (empty($order->payment_intent_id) && !empty($order->stripe_session_id)) {
+        if (empty($order->payment_intent_id) && ! empty($order->stripe_session_id)) {
             $this->recoverPaymentIntent($order);
         }
 
-        if (!$order->payment_intent_id) {
+        if (! $order->payment_intent_id) {
             throw new \Exception('Missing payment intent - cannot refund.');
         }
 
@@ -182,22 +182,22 @@ class RefundService
 
             $stripeRefund = StripeRefund::create([
                 'payment_intent' => $lockedOrder->payment_intent_id,
-                'amount'         => (int) round($amount * 100),
-                'metadata'       => [
+                'amount' => (int) round($amount * 100),
+                'metadata' => [
                     'order_id' => (string) $lockedOrder->id,
-                    'reason'   => $reason ?? '',
+                    'reason' => $reason ?? '',
                 ],
             ]);
 
             $status = $stripeRefund->status;
 
             $refundModel = Refund::create([
-                'order_id'          => $lockedOrder->id,
-                'user_id'           => $lockedOrder->user_id,
-                'amount'            => $amount,
-                'reason'            => $reason,
-                'status'            => $status,
-                'stripe_refund_id'  => $stripeRefund->id,
+                'order_id' => $lockedOrder->id,
+                'user_id' => $lockedOrder->user_id,
+                'amount' => $amount,
+                'reason' => $reason,
+                'status' => $status,
+                'stripe_refund_id' => $stripeRefund->id,
             ]);
 
             if ($status === 'succeeded') {
@@ -262,7 +262,7 @@ class RefundService
 
         Log::warning('Refund failed at Stripe', [
             'refund_id' => $refund->id,
-            'order_id'  => $refund->order_id,
+            'order_id' => $refund->order_id,
         ]);
     }
 
@@ -280,7 +280,7 @@ class RefundService
             return max(0, (float) $order->total - (float) $order->refunded_total);
         }
 
-        if (!$order->payment_intent_id) {
+        if (! $order->payment_intent_id) {
             return 0.0;
         }
 
@@ -315,7 +315,7 @@ class RefundService
 
         try {
             $session = StripeSession::retrieve([
-                'id'     => $order->stripe_session_id,
+                'id' => $order->stripe_session_id,
                 'expand' => ['payment_intent'],
             ]);
 

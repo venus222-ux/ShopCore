@@ -12,9 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('traffic_logs', function (Blueprint $table) {
-                $table->string('browser')->nullable();
-               $table->string('platform')->nullable();
-                $table->string('device')->nullable();
+            $table->string('browser')->nullable();
+            $table->string('platform')->nullable();
+            $table->string('device')->nullable();
         });
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 // database/migrations/xxxx_add_payment_method_to_orders_table.php
 
 use Illuminate\Database\Migrations\Migration;

@@ -7,6 +7,7 @@ use MongoDB\Laravel\Eloquent\Model;
 class MongoLog extends Model
 {
     protected $connection = 'mongodb';
+
     protected $collection = 'upload_logs';
 
     protected $fillable = [
@@ -17,7 +18,8 @@ class MongoLog extends Model
         'uploaded_by',
         'ip',
         'user_agent',
-        'created_at'
+        'created_at',
     ];
+
     public $timestamps = false;
 }

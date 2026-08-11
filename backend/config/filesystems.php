@@ -29,7 +29,7 @@ return [
     */
 
     'disks' => [
- 
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),
@@ -38,16 +38,12 @@ return [
             'report' => false,
         ],
 
-
-
-    'public' => [
-        'driver' => 'local',
-        'root' => storage_path('app/public'),
-        'url' => env('APP_URL').'/storage',
-        'visibility' => 'public',
-    ],
-
-
+        'public' => [
+            'driver' => 'local',
+            'root' => storage_path('app/public'),
+            'url' => env('APP_URL').'/storage',
+            'visibility' => 'public',
+        ],
 
         's3' => [
             'driver' => 's3',
@@ -63,10 +59,10 @@ return [
         ],
 
         'media' => [
-          'driver' => 'local',
-          'root' => storage_path('app/public/media'),
-          'url' => env('APP_URL') . '/storage/media',
-          'visibility' => 'public',
+            'driver' => 'local',
+            'root' => storage_path('app/public/media'),
+            'url' => env('APP_URL').'/storage/media',
+            'visibility' => 'public',
         ],
 
     ],

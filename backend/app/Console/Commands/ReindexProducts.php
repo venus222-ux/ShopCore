@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Product;
 use App\Services\ProductSearchService;
+use Illuminate\Console\Command;
 
 class ReindexProducts extends Command
 {
@@ -27,7 +27,7 @@ class ReindexProducts extends Command
      */
     public function handle()
     {
-        $this->info("Starting products reindex...");
+        $this->info('Starting products reindex...');
 
         $service = app(ProductSearchService::class);
 

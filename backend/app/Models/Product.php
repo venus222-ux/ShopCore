@@ -11,33 +11,33 @@ use Spatie\MediaLibrary\InteractsWithMedia;
 class Product extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia;
-// Add to $fillable
-protected $fillable = [
-    'title',
-    'slug',
-    'short_description',
-    'description',
-    'price',
-    'asset_type',
-    'is_published',
-    'category_id',
-    'user_id',
-    'discount_percentage',
-    'discount_fixed',
-    'discount_starts_at',
-    'discount_ends_at',
-    'parent_id'
-];
 
-protected $casts = [
-    'is_published'       => 'boolean',
-    'price'              => 'decimal:2',
-    'discount_percentage'=> 'decimal:2',
-    'discount_fixed'     => 'decimal:2',
-    'discount_starts_at' => 'datetime:Y-m-d H:i:s',   // ← use space + seconds
-    'discount_ends_at'   => 'datetime:Y-m-d H:i:s',
-];
+    // Add to $fillable
+    protected $fillable = [
+        'title',
+        'slug',
+        'short_description',
+        'description',
+        'price',
+        'asset_type',
+        'is_published',
+        'category_id',
+        'user_id',
+        'discount_percentage',
+        'discount_fixed',
+        'discount_starts_at',
+        'discount_ends_at',
+        'parent_id',
+    ];
 
+    protected $casts = [
+        'is_published' => 'boolean',
+        'price' => 'decimal:2',
+        'discount_percentage' => 'decimal:2',
+        'discount_fixed' => 'decimal:2',
+        'discount_starts_at' => 'datetime:Y-m-d H:i:s',   // ← use space + seconds
+        'discount_ends_at' => 'datetime:Y-m-d H:i:s',
+    ];
 
     public function category()
     {
@@ -65,154 +65,150 @@ protected $casts = [
         return $this->hasOne(ProductVariant::class)->where('is_default', true);
     }
 
-public function registerMediaCollections(): void
-{
-    $this->addMediaCollection('previews')
-        ->useDisk('public')
-        ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/gif'])
-        ->singleFile(false)           // ← Very important
-        ->onlyKeepLatest(999);       // null = keep all files
+    public function registerMediaCollections(): void
+    {
+        $this->addMediaCollection('previews')
+            ->useDisk('public')
+            ->acceptsMimeTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'image/gif'])
+            ->singleFile(false)           // ← Very important
+            ->onlyKeepLatest(999);       // null = keep all files
 
-    $this->addMediaCollection('asset')
-        ->useDisk('public')
-        ->singleFile(true);
-}
-
+        $this->addMediaCollection('asset')
+            ->useDisk('public')
+            ->singleFile(true);
+    }
 
     public function users()
     {
-       return $this->belongsToMany(User::class);
+        return $this->belongsToMany(User::class);
     }
 
     public function wishedByUsers()
-   {
-    return $this->belongsToMany(
-        User::class,
-        'wishlists'
-    )->withTimestamps();
-   }
+    {
+        return $this->belongsToMany(
+            User::class,
+            'wishlists'
+        )->withTimestamps();
+    }
 
- // ================= DISCOUNT LOGIC (SAFE) =================
+    // ================= DISCOUNT LOGIC (SAFE) =================
 
-public function getFinalPriceAttribute()
-{
-    $price = (float) ($this->attributes['price'] ?? $this->price ?? 0);
+    public function getFinalPriceAttribute()
+    {
+        $price = (float) ($this->attributes['price'] ?? $this->price ?? 0);
 
-    $discountAmount = $this->getActiveDiscountAmount();
+        $discountAmount = $this->getActiveDiscountAmount();
 
-    return max(0, round($price - $discountAmount, 2));
-}
+        return max(0, round($price - $discountAmount, 2));
+    }
 
-public function getEffectiveDiscountPercentageAttribute(): float
-{
-    return $this->getActiveDiscountPercentage();
-}
+    public function getEffectiveDiscountPercentageAttribute(): float
+    {
+        return $this->getActiveDiscountPercentage();
+    }
 
-public function getOldPriceAttribute()
-{
-    return $this->hasActiveDiscount() ? $this->price : null;
-}
+    public function getOldPriceAttribute()
+    {
+        return $this->hasActiveDiscount() ? $this->price : null;
+    }
 
-public function hasActiveDiscount(): bool
-{
-    return $this->getActiveDiscountPercentage() > 0;
-}
+    public function hasActiveDiscount(): bool
+    {
+        return $this->getActiveDiscountPercentage() > 0;
+    }
 
-/**
- * Get active discount percentage (Product > Category)
- */
-private function getActiveDiscountPercentage(): float
-{
-    // Check if column exists first
-    if (!$this->hasColumn('discount_percentage')) {
+    /**
+     * Get active discount percentage (Product > Category)
+     */
+    private function getActiveDiscountPercentage(): float
+    {
+        // Check if column exists first
+        if (! $this->hasColumn('discount_percentage')) {
+            return 0;
+        }
+
+        // Product discount (priority)
+        if ((float) ($this->attributes['discount_percentage'] ?? 0) > 0) {
+            if ($this->isDiscountActive()) {
+                return (float) $this->attributes['discount_percentage'];
+            }
+        }
+
+        // Category discount
+        if ($this->category && method_exists($this->category, 'hasActiveDiscount')) {
+            if ($this->category->hasActiveDiscount()) {
+                return (float) ($this->category->discount_percentage ?? 0);
+            }
+        }
+
         return 0;
     }
 
-    // Product discount (priority)
-    if ((float)($this->attributes['discount_percentage'] ?? 0) > 0) {
-        if ($this->isDiscountActive()) {
-            return (float) $this->attributes['discount_percentage'];
+    private function getActiveDiscountAmount(): float
+    {
+        $price = (float) ($this->attributes['price'] ?? 0);
+        $perc = $this->getActiveDiscountPercentage();
+
+        if ($perc > 0) {
+            return $price * ($perc / 100);
         }
-    }
 
-    // Category discount
-    if ($this->category && method_exists($this->category, 'hasActiveDiscount')) {
-        if ($this->category->hasActiveDiscount()) {
-            return (float) ($this->category->discount_percentage ?? 0);
+        // Fixed discount (product only)
+        if ($this->hasColumn('discount_fixed') && (float) ($this->attributes['discount_fixed'] ?? 0) > 0) {
+            if ($this->isDiscountActive()) {
+                return (float) $this->attributes['discount_fixed'];
+            }
         }
+
+        return 0;
     }
 
-    return 0;
-}
-
-private function getActiveDiscountAmount(): float
-{
-    $price = (float) ($this->attributes['price'] ?? 0);
-    $perc = $this->getActiveDiscountPercentage();
-
-    if ($perc > 0) {
-        return $price * ($perc / 100);
-    }
-
-    // Fixed discount (product only)
-    if ($this->hasColumn('discount_fixed') && (float)($this->attributes['discount_fixed'] ?? 0) > 0) {
-        if ($this->isDiscountActive()) {
-            return (float) $this->attributes['discount_fixed'];
+    private function isDiscountActive(): bool
+    {
+        if (! $this->hasColumn('discount_starts_at')) {
+            return true;
         }
-    }
 
-    return 0;
-}
+        $now = now();
 
-private function isDiscountActive(): bool
-{
-    if (!$this->hasColumn('discount_starts_at')) {
+        if (! empty($this->attributes['discount_starts_at']) && $now->lt($this->attributes['discount_starts_at'])) {
+            return false;
+        }
+
+        if (! empty($this->attributes['discount_ends_at']) && $now->gt($this->attributes['discount_ends_at'])) {
+            return false;
+        }
+
         return true;
     }
 
-    $now = now();
-
-    if (!empty($this->attributes['discount_starts_at']) && $now->lt($this->attributes['discount_starts_at'])) {
-        return false;
+    private function hasColumn(string $column): bool
+    {
+        try {
+            return Schema::hasColumn($this->getTable(), $column);
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
-    if (!empty($this->attributes['discount_ends_at']) && $now->gt($this->attributes['discount_ends_at'])) {
-        return false;
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 
-    return true;
-}
-
-private function hasColumn(string $column): bool
-{
-    try {
-        return Schema::hasColumn($this->getTable(), $column);
-    } catch (\Exception $e) {
-        return false;
-    }
-}
-
-
-public function orders()
-{
-    return $this->hasMany(Order::class);
-}
-
-// 👇 accessors to fetch Spatie Media URLs 👇
+    // 👇 accessors to fetch Spatie Media URLs 👇
     public function getPreviewUrlsAttribute(): array
     {
         return $this->getMedia('previews')
             ->sortBy('order_column')
-            ->map(fn($m) => $m->getFullUrl())
+            ->map(fn ($m) => $m->getFullUrl())
             ->toArray();
     }
 
     public function getPreviewUrlAttribute(): ?string
     {
         $urls = $this->preview_urls;
+
         return $urls[0] ?? null;
     }
-
-    
-
 }

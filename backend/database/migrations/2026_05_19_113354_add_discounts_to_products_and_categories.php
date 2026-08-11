@@ -4,11 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up()
     {
         // Products
-        if (!Schema::hasColumn('products', 'discount_percentage')) {
+        if (! Schema::hasColumn('products', 'discount_percentage')) {
             Schema::table('products', function (Blueprint $table) {
                 $table->decimal('discount_percentage', 5, 2)->default(0)->after('price');
                 $table->decimal('discount_fixed', 10, 2)->nullable()->after('discount_percentage');
@@ -18,7 +19,7 @@ return new class extends Migration {
         }
 
         // Categories
-        if (!Schema::hasColumn('categories', 'discount_percentage')) {
+        if (! Schema::hasColumn('categories', 'discount_percentage')) {
             Schema::table('categories', function (Blueprint $table) {
                 $table->decimal('discount_percentage', 5, 2)->default(0)->after('name');
                 $table->timestamp('discount_starts_at')->nullable()->after('discount_percentage');

@@ -11,10 +11,10 @@ class SettingsController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
-            'coupons_enabled'     => 'sometimes|boolean',
-            'cod_enabled'         => 'sometimes|boolean',
+            'coupons_enabled' => 'sometimes|boolean',
+            'cod_enabled' => 'sometimes|boolean',
             'cod_max_order_value' => 'sometimes|numeric|min:0',
-            'cod_fee'             => 'sometimes|numeric|min:0',
+            'cod_fee' => 'sometimes|numeric|min:0',
         ]);
 
         foreach ($data as $key => $value) {

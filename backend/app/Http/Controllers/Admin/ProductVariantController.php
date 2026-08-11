@@ -10,7 +10,7 @@ use Illuminate\Support\Str;
 
 class ProductVariantController extends Controller
 {
-    public function index(Product $product) 
+    public function index(Product $product)
     {
         return $product->variants()
             ->with(['attributeValues.attribute', 'inventory'])
@@ -21,29 +21,29 @@ class ProductVariantController extends Controller
     public function store(Request $request, Product $product)
     {
         $data = $request->validate([
-            'sku'                   => 'nullable|string|max:100|unique:product_variants,sku',
-            'price'                 => 'nullable|numeric|min:0',
-            'discount_percentage'   => 'nullable|numeric|min:0|max:100',
-            'is_default'            => 'boolean|nullable',
-            'attribute_value_ids'   => 'array',
+            'sku' => 'nullable|string|max:100|unique:product_variants,sku',
+            'price' => 'nullable|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'is_default' => 'boolean|nullable',
+            'attribute_value_ids' => 'array',
             'attribute_value_ids.*' => 'integer|exists:attribute_values,id',
-            'track_stock'           => 'boolean|nullable',
-            'quantity'              => 'integer|min:0|nullable',
+            'track_stock' => 'boolean|nullable',
+            'quantity' => 'integer|min:0|nullable',
         ]);
 
         $variant = $product->variants()->create([
-            'sku'                 => $data['sku'] ?: $this->generateSku($product),
-            'price'               => $data['price'] ?? null,
+            'sku' => $data['sku'] ?: $this->generateSku($product),
+            'price' => $data['price'] ?? null,
             'discount_percentage' => $data['discount_percentage'] ?? null,
-            'is_default'          => $data['is_default'] ?? false,
+            'is_default' => $data['is_default'] ?? false,
         ]);
 
         $variant->attributeValues()->sync($data['attribute_value_ids'] ?? []);
 
         $variant->inventory()->create([
             'track_stock' => $data['track_stock'] ?? true,
-            'quantity'    => $data['quantity'] ?? 0,
-            'reserved'    => 0,
+            'quantity' => $data['quantity'] ?? 0,
+            'reserved' => 0,
         ]);
 
         $variant->load(['attributeValues.attribute', 'inventory']);
@@ -54,19 +54,19 @@ class ProductVariantController extends Controller
     public function update(Request $request, ProductVariant $variant)
     {
         $data = $request->validate([
-            'sku'                   => 'nullable|string|max:100|unique:product_variants,sku,' . $variant->id,
-            'price'                 => 'nullable|numeric|min:0',
-            'discount_percentage'   => 'nullable|numeric|min:0|max:100',
-            'is_default'            => 'boolean|nullable',
-            'attribute_value_ids'   => 'array|nullable',
+            'sku' => 'nullable|string|max:100|unique:product_variants,sku,'.$variant->id,
+            'price' => 'nullable|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'is_default' => 'boolean|nullable',
+            'attribute_value_ids' => 'array|nullable',
             'attribute_value_ids.*' => 'integer|exists:attribute_values,id',
         ]);
 
         $variant->update([
-            'sku'                 => $data['sku'] ?? $variant->sku,
-            'price'               => array_key_exists('price', $data) ? $data['price'] : $variant->price,
+            'sku' => $data['sku'] ?? $variant->sku,
+            'price' => array_key_exists('price', $data) ? $data['price'] : $variant->price,
             'discount_percentage' => array_key_exists('discount_percentage', $data) ? $data['discount_percentage'] : $variant->discount_percentage,
-            'is_default'          => $data['is_default'] ?? $variant->is_default,
+            'is_default' => $data['is_default'] ?? $variant->is_default,
         ]);
 
         if (array_key_exists('attribute_value_ids', $data)) {
@@ -95,12 +95,12 @@ class ProductVariantController extends Controller
     {
         $data = $request->validate([
             'track_stock' => 'boolean',
-            'quantity'    => 'integer|min:0',
+            'quantity' => 'integer|min:0',
         ]);
 
         $variant->inventory()->updateOrCreate([], [
             'track_stock' => $data['track_stock'],
-            'quantity'    => $data['quantity'],
+            'quantity' => $data['quantity'],
         ]);
 
         return response()->json($this->shape($variant->fresh(['attributeValues.attribute', 'inventory'])));
@@ -110,27 +110,27 @@ class ProductVariantController extends Controller
     {
         $base = $product->slug ?: (string) $product->id;
 
-        return 'SKU-' . strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)) . '-' . Str::upper(Str::random(4));
+        return 'SKU-'.strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)).'-'.Str::upper(Str::random(4));
     }
 
     private function shape(ProductVariant $variant): array
     {
         return [
-            'id'                  => $variant->id,
-            'sku'                 => $variant->sku,
-            'price'               => $variant->price !== null ? (float) $variant->price : null,
+            'id' => $variant->id,
+            'sku' => $variant->sku,
+            'price' => $variant->price !== null ? (float) $variant->price : null,
             'discount_percentage' => $variant->discount_percentage !== null ? (float) $variant->discount_percentage : null,
-            'is_default'          => (bool) $variant->is_default,
-            'attribute_values'    => $variant->attributeValues->map(fn ($av) => [
-                'value_id'       => $av->id,
-                'attribute_id'   => $av->attribute_id,
+            'is_default' => (bool) $variant->is_default,
+            'attribute_values' => $variant->attributeValues->map(fn ($av) => [
+                'value_id' => $av->id,
+                'attribute_id' => $av->attribute_id,
                 'attribute_name' => $av->attribute->name,
-                'value'          => $av->value,
+                'value' => $av->value,
             ]),
             'inventory' => $variant->inventory ? [
                 'track_stock' => (bool) $variant->inventory->track_stock,
-                'quantity'    => $variant->inventory->quantity,
-                'reserved'    => $variant->inventory->reserved,
+                'quantity' => $variant->inventory->quantity,
+                'reserved' => $variant->inventory->reserved,
             ] : null,
         ];
     }

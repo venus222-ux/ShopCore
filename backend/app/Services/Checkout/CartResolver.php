@@ -17,24 +17,24 @@ class CartResolver
         foreach ($cartItems as $item) {
             $product = Product::findOrFail($item['id']);
 
-            $variant = !empty($item['variant_id'])
+            $variant = ! empty($item['variant_id'])
                 ? ProductVariant::where('product_id', $product->id)->findOrFail($item['variant_id'])
                 : $product->defaultVariant;
 
-            if (!$variant) {
+            if (! $variant) {
                 throw new \RuntimeException("Product #{$product->id} has no purchasable variant.");
             }
 
             $quantity = (int) $item['quantity'];
-            $price    = (float) $variant->final_price;
+            $price = (float) $variant->final_price;
 
             $subtotal += $price * $quantity;
 
             $orderItemsData[] = [
-                'product_id'         => $product->id,
+                'product_id' => $product->id,
                 'product_variant_id' => $variant->id,
-                'quantity'           => $quantity,
-                'price'              => $price,
+                'quantity' => $quantity,
+                'price' => $price,
             ];
 
             $reservationLines[] = ['variant' => $variant, 'quantity' => $quantity];

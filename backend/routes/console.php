@@ -8,6 +8,5 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-
 Schedule::command('orders:release-stale-reservations --hours=24')->everySixHours();
 Schedule::command('orders:release-stale-cash --days=14')->everySixHours();

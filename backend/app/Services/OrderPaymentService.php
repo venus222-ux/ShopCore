@@ -24,6 +24,7 @@ class OrderPaymentService
 
             if ($locked->status === 'paid') {
                 Log::info('Order already paid, skipping', ['order_id' => $locked->id]);
+
                 return $locked;
             }
 

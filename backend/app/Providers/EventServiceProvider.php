@@ -2,32 +2,28 @@
 
 namespace App\Providers;
 
-use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
-use Illuminate\Support\Facades\Event;
-
 use App\Events\Auth\PasswordResetRequested;
-use App\Events\Auth\UserRegistered;
 use App\Events\Auth\UserLoggedIn;
+use App\Events\Auth\UserRegistered;
 use App\Events\FileUploaded;
 use App\Events\Order\CashOrderPlaced;
 use App\Events\OrderPaid;
-
-// Refund Events
-use App\Events\Refund\RefundRequested;
 use App\Events\Refund\RefundApproved;
 use App\Events\Refund\RefundRejected;
-
-use App\Listeners\SendResetPasswordNotification;
-use App\Listeners\SendWelcomeEmail;
-use App\Listeners\LogUserLogin;
+// Refund Events
+use App\Events\Refund\RefundRequested;
 use App\Listeners\LogUploadToMongo;
+use App\Listeners\LogUserLogin;
 use App\Listeners\Order\SendCashOrderPlacedEmail;
-use App\Listeners\SendOrderConfirmationEmail;
-
-// Refund Listeners
 use App\Listeners\Refund\NotifyAdminOfRefundRequest;
 use App\Listeners\Refund\SendRefundApprovedEmail;
 use App\Listeners\Refund\SendRefundRejectedEmail;
+use App\Listeners\SendOrderConfirmationEmail;
+use App\Listeners\SendResetPasswordNotification;
+// Refund Listeners
+use App\Listeners\SendWelcomeEmail;
+use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Event;
 
 class EventServiceProvider extends ServiceProvider
 {
