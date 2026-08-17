@@ -159,19 +159,19 @@ return [
     'redis' => [
         'client' => env('REDIS_CLIENT', 'phpredis'),
 
-        'default' => [
-            // If we are on Windows (PHP_OS_FAMILY), use 127.0.0.1. Otherwise, use the Docker container name.
-            'host' => (PHP_OS_FAMILY === 'Windows') ? '127.0.0.1' : 'shopcore_redis',
-            'password' => env('REDIS_PASSWORD', null),
-            'port' => (PHP_OS_FAMILY === 'Windows') ? '6381' : '6379',
+         'default' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_DB', '0'),
+            'max_retries' => env('REDIS_MAX_RETRIES', 3),
+            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
+            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
+            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
         ],
 
-        'horizon' => [
-            'host' => (PHP_OS_FAMILY === 'Windows') ? '127.0.0.1' : 'shopcore_redis',
-            'password' => env('REDIS_PASSWORD', null),
-            'port' => (PHP_OS_FAMILY === 'Windows') ? '6381' : '6379',
-            'database' => env('REDIS_DB', '0'),
-        ],
+
     ],
 ];

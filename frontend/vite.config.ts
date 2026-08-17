@@ -22,9 +22,13 @@ export default defineConfig({
       },
     },
   },
-  server: {
-    proxy: {
-      "/api": "http://localhost:8000",
+server: {
+  proxy: {
+    "/api": {
+      target: "http://nginx:80",
+      changeOrigin: true,
+      secure: false,
     },
   },
+},
 });

@@ -3,7 +3,8 @@ global:
   scrape_timeout: 8s
 
 scrape_configs:
-  - job_name: "<NAMESPACE>"
+  - job_name: "shopcore"
     metrics_path: "/metrics"
     static_configs:
-      - targets: ["<APP_CONTAINER_NAME>:8000"]
+      - targets:
+          - "laravel_app:8000"

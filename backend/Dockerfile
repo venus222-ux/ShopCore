@@ -2,6 +2,7 @@ FROM dunglas/frankenphp:latest-php8.3
 
 # Dependențe de sistem necesare pentru extensiile PHP de mai jos
 RUN apt-get update && apt-get install -y \
+    git \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
@@ -37,6 +38,7 @@ RUN chmod +x /usr/local/bin/frankenphp
 
 WORKDIR /var/www/html
 COPY . /var/www/html
+COPY Caddyfile /etc/caddy/Caddyfile
 
 EXPOSE 8000
 
