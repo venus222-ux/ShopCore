@@ -1,31 +1,44 @@
-# Change from 'cli' to 'fpm'
-FROM php:8.2-fpm
+FROM dunglas/frankenphp:latest-php8.3
 
-# Install system dependencies
+# Dependențe de sistem necesare pentru extensiile PHP de mai jos
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libonig-dev \
     libxml2-dev \
+    libssl-dev \
+    pkg-config \
     zip \
     unzip \
-    supervisor
+    supervisor \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install standard PHP extensions
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+# Extensii PHP standard
+RUN install-php-extensions \
+    pcntl \
+    pdo_mysql \
+    mysqli \
+    mbstring \
+    exif \
+    bcmath \
+    gd \
+    redis \
+    opcache \
+    zip \
+    intl
 
-# Install Redis extension
-RUN pecl install redis && docker-php-ext-enable redis
+# Extensia MongoDB (nu e inclusă în install-php-extensions implicit pe toate versiunile,
+# se instalează separat prin PECL pentru siguranță)
+RUN pecl install mongodb-1.21.0 && docker-php-ext-enable mongodb
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+RUN chmod +x /usr/local/bin/frankenphp
 
 WORKDIR /var/www/html
+COPY . /var/www/html
 
-# Copy the supervisor config
-COPY ./docker/supervisord.conf /etc/supervisor/supervisord.conf
+EXPOSE 8000
 
-# Start PHP-FPM AND Supervisor together
-# Use a script or modify your supervisord.conf to start both
-CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]
-
-ENV IS_DOCKER=true
+HEALTHCHECK --interval=30s --timeout=3s --start-period=15s \
+  CMD curl -f http://localhost:8000/ || exit 1

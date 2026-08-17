@@ -32,7 +32,7 @@ return [
     'connections' => [
 
         'sqlite' => [
-            'driver' => 'mysql',
+            'driver' => 'sqlite',
             'url' => env('DB_URL'),
             'database' => env('DB_DATABASE', database_path('database.sqlite')),
             'prefix' => '',
@@ -46,7 +46,7 @@ return [
         'mysql' => [
             'driver' => 'mysql',
             'url' => env('DB_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
+            'host' => env('DB_HOST', 'mysql'),
             'port' => env('DB_PORT', '3306'),
             'database' => env('DB_DATABASE', 'shopcore'),
             'username' => env('DB_USERNAME', 'root'),
@@ -118,7 +118,7 @@ return [
             'driver' => 'mongodb',
             // Force it to use the environment variable,
             // and if the environment variable is missing, default to the bridge
-            'host' => env('DB_MONGO_HOST', 'host.docker.internal'),
+            'host' => env('DB_MONGO_HOST', '127.0.0.1'),
             'port' => env('DB_MONGO_PORT', 27017),
             'database' => env('DB_MONGO_DATABASE', 'shopcore'),
             'username' => env('DB_MONGO_USERNAME', ''),
