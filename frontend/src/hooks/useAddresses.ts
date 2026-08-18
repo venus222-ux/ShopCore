@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import API from "../api";
+import { useStore } from "../store/useStore";
 
 export interface Address {
   id: number;
@@ -17,10 +18,13 @@ export interface Address {
 }
 
 export const useAddresses = (type?: "billing" | "shipping") => {
+  const token = useStore((state) => state.token);
+
   return useQuery<Address[]>({
     queryKey: ["addresses", type],
     queryFn: async () =>
       (await API.get("/addresses", { params: { type } })).data,
-    staleTime: 1000 * 60, // 1 min - address book changes rarely mid-session
+    enabled: !!token, // ⭐ nu trage deloc fără token — evită 401 → refresh → hard redirect
+    staleTime: 1000 * 60,
   });
 };

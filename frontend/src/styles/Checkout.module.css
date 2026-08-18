@@ -402,3 +402,132 @@
     gap: 0;
   }
 }
+
+
+.emptyContainer {
+  min-height: 520px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: #f8f9fb;
+}
+
+.emptyContent {
+  width: 100%;
+  max-width: 520px;
+  padding: 48px 44px;
+  text-align: center;
+  background: #ffffff;
+  border: 1px solid #e9ebef;
+  border-radius: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06);
+}
+
+.emptyIconWrapper {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #111827;
+  background: #f1f3f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+}
+
+.emptyTitle {
+  margin: 28px 0 12px;
+  color: #111827;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.5px;
+}
+
+.emptyDescription {
+  max-width: 410px;
+  margin: 0 auto;
+  color: #6b7280;
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.emptyActions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.primaryBtn,
+.secondaryBtn {
+  min-width: 150px;
+  height: 48px;
+  padding: 0 24px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.primaryBtn {
+  color: #ffffff;
+  background: #111827;
+  border: 1px solid #111827;
+}
+
+.primaryBtn:hover {
+  background: #000000;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
+}
+
+.secondaryBtn {
+  color: #111827;
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+}
+
+.secondaryBtn:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+}
+
+.secureText {
+  margin: 24px 0 0;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+@media (max-width: 576px) {
+  .emptyContainer {
+    min-height: 450px;
+    padding: 24px 16px;
+  }
+
+  .emptyContent {
+    padding: 36px 24px;
+    border-radius: 20px;
+  }
+
+  .emptyTitle {
+    font-size: 23px;
+  }
+
+  .emptyActions {
+    flex-direction: column;
+  }
+
+  .primaryBtn,
+  .secondaryBtn {
+    width: 100%;
+  }
+}

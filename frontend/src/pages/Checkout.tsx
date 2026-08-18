@@ -24,6 +24,12 @@ import styles from "../styles/Checkout.module.css";
 export default function Checkout() {
   const navigate = useNavigate();
   const { items } = useCartStore();
+
+  // Reactive subscription (not getState()) so the guard reacts immediately
+  // if the token is cleared elsewhere mid-session (e.g. a 401 interceptor
+  // logging the user out), not just on next mount.
+  const token = useStore((state) => state.token);
+
   const [loading, setLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "cash">("card");
   const [checkoutSucceeded, setCheckoutSucceeded] = useState(false);
@@ -45,8 +51,9 @@ export default function Checkout() {
   const [sameAsBilling, setSameAsBilling] = useState(true);
   const [showShippingSelector, setShowShippingSelector] = useState(false);
 
-  // Shipping Method
-  const { data: shippingMethods, isLoading: shippingMethodsLoading } = useShippingMethods(requiresShipping);
+  // Shipping Method – only fetch when shipping is required AND user is authenticated
+  const { data: shippingMethods, isLoading: shippingMethodsLoading } =
+    useShippingMethods(requiresShipping && !!token);
   const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<number | null>(null);
 
   // Coupon
@@ -303,6 +310,65 @@ export default function Checkout() {
       setLoading(false);
     }
   };
+
+  // Auth guard – must run before the empty-cart check so a guest with
+  // items in the cart still sees the login/register prompt (not the empty cart UI).
+  if (!token) {
+    return (
+     <div className={styles.emptyContainer}>
+  <div className={styles.emptyContent}>
+    <div className={styles.emptyIconWrapper}>
+      <svg
+        width="28"
+        height="28"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="11" width="18" height="10" rx="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+    </div>
+
+    <h3 className={styles.emptyTitle}>
+      Create an account to check out
+    </h3>
+
+    <p className={styles.emptyDescription}>
+      You need an account to complete your purchase. Create one in just a
+      minute and your cart will be waiting for you.
+    </p>
+
+    <div className={styles.emptyActions}>
+      <button
+        onClick={() =>
+          navigate("/register", { state: { from: "/checkout" } })
+        }
+        className={styles.primaryBtn}
+      >
+        Create Account
+      </button>
+
+      <button
+        onClick={() =>
+          navigate("/login", { state: { from: "/checkout" } })
+        }
+        className={styles.secondaryBtn}
+      >
+        Log In
+      </button>
+    </div>
+
+    <p className={styles.secureText}>
+      🔒 Your information is secure
+    </p>
+  </div>
+</div>
+    );
+  }
 
   if (items.length === 0) {
     return (
