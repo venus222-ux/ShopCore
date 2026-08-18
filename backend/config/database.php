@@ -159,7 +159,7 @@ return [
     'redis' => [
         'client' => env('REDIS_CLIENT', 'phpredis'),
 
-         'default' => [
+        'default' => [
             'url' => env('REDIS_URL'),
             'host' => env('REDIS_HOST', '127.0.0.1'),
             'username' => env('REDIS_USERNAME'),
@@ -171,7 +171,6 @@ return [
             'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
             'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
         ],
-
 
     ],
 ];

@@ -58,15 +58,13 @@ class ProductResource extends JsonResource
                 ])
                 ->values()
                 ->toArray(),
-
-            'asset' => $asset ? [
+            'asset' => ($this->asset_type === 'digital' && $asset) ? [
                 'id' => $asset->id,
                 'url' => $asset->getFullUrl(),
                 'file_name' => $asset->file_name,
                 'size' => $asset->size,
                 'mime_type' => $asset->mime_type,
             ] : null,
-
             // set by controller (no query in resource)
             'is_wishlisted' => $this->is_wishlisted ?? false,
 

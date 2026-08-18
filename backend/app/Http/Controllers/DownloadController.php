@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Product;
 use ZipArchive;
 
@@ -11,6 +10,10 @@ class DownloadController extends Controller
     public function download(Product $product)
     {
         $user = auth()->user();
+
+        if ($product->asset_type !== 'digital') {
+            abort(404);
+        }
 
         $ownsProduct = $user->orders()
             ->whereHas('items', function ($q) use ($product) {

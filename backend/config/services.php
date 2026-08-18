@@ -35,11 +35,11 @@ return [
         ],
     ],
 
-  'elasticsearch' => [
-    'host' => env('ELASTICSEARCH_HOST', 'elasticsearch'),
-    'port' => env('ELASTICSEARCH_PORT', 9200),
-    'index' => env('ELASTICSEARCH_INDEX', 'products'),
-],
+    'elasticsearch' => [
+        'host' => env('ELASTICSEARCH_HOST', 'elasticsearch'),
+        'port' => env('ELASTICSEARCH_PORT', 9200),
+        'index' => env('ELASTICSEARCH_INDEX', 'products'),
+    ],
 
     'stripe' => [
         'key' => env('STRIPE_KEY'),

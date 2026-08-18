@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AdminMiddleware;
 use App\Http\Middleware\JwtMiddleware;
+use App\Http\Middleware\PrometheusMetricsMiddleware;
 use App\Http\Middleware\TrackTraffic;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -21,8 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
 
-        $middleware->append(\App\Http\Middleware\PrometheusMetricsMiddleware::class);
-
+        $middleware->append(PrometheusMetricsMiddleware::class);
 
         // Global middleware
         $middleware->use([

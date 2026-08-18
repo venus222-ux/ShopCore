@@ -12,11 +12,11 @@ class ProductSearchService
 
     public function __construct()
     {
-      $this->client = ClientBuilder::create()
-    ->setHosts([
-        config('services.elasticsearch.host') . ':' . config('services.elasticsearch.port')
-    ])
-    ->build();
+        $this->client = ClientBuilder::create()
+            ->setHosts([
+                config('services.elasticsearch.host').':'.config('services.elasticsearch.port'),
+            ])
+            ->build();
     }
 
     public function index(Product $product)

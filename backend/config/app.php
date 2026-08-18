@@ -161,39 +161,39 @@ return [
     ),
 
     'providers' => [
-            /*
+        /*
          * Laravel Framework Service Providers...
          */
-            AuthServiceProvider::class,
-            BroadcastServiceProvider::class,
-            BusServiceProvider::class,
-            CacheServiceProvider::class,
-            ConsoleSupportServiceProvider::class,
-            CookieServiceProvider::class,
-            DatabaseServiceProvider::class,
-            EncryptionServiceProvider::class,
-            FilesystemServiceProvider::class, // <-- THIS IS REQUIRED
-            FoundationServiceProvider::class,
-            HashServiceProvider::class,
-            MailServiceProvider::class,
-            NotificationServiceProvider::class,
-            PaginationServiceProvider::class,
-            PipelineServiceProvider::class,
-            QueueServiceProvider::class,
-            RedisServiceProvider::class,
-            PasswordResetServiceProvider::class,
-            SessionServiceProvider::class,
-            TranslationServiceProvider::class,
-            ValidationServiceProvider::class,
-            ViewServiceProvider::class,
+        AuthServiceProvider::class,
+        BroadcastServiceProvider::class,
+        BusServiceProvider::class,
+        CacheServiceProvider::class,
+        ConsoleSupportServiceProvider::class,
+        CookieServiceProvider::class,
+        DatabaseServiceProvider::class,
+        EncryptionServiceProvider::class,
+        FilesystemServiceProvider::class, // <-- THIS IS REQUIRED
+        FoundationServiceProvider::class,
+        HashServiceProvider::class,
+        MailServiceProvider::class,
+        NotificationServiceProvider::class,
+        PaginationServiceProvider::class,
+        PipelineServiceProvider::class,
+        QueueServiceProvider::class,
+        RedisServiceProvider::class,
+        PasswordResetServiceProvider::class,
+        SessionServiceProvider::class,
+        TranslationServiceProvider::class,
+        ValidationServiceProvider::class,
+        ViewServiceProvider::class,
 
-            /*
+        /*
          * Application Service Providers...
          */
-            AppServiceProvider::class,
-            App\Providers\AuthServiceProvider::class,
-            App\Providers\BroadcastServiceProvider::class,
+        AppServiceProvider::class,
+        App\Providers\AuthServiceProvider::class,
+        App\Providers\BroadcastServiceProvider::class,
 
-        ],
+    ],
 
 ];

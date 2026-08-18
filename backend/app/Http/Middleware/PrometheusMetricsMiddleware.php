@@ -22,7 +22,7 @@ class PrometheusMetricsMiddleware
 
         try {
             RedisAdapter::setDefaultOptions(config('prometheus.redis'));
-            $registry = new CollectorRegistry(new RedisAdapter());
+            $registry = new CollectorRegistry(new RedisAdapter);
 
             $route = $request->route()?->uri() ?? $request->path();
 

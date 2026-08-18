@@ -13,9 +13,9 @@ class ElasticsearchSetup extends Command
 
     public function handle()
     {
-      $client = ClientBuilder::create()
-       ->setHosts([config('services.elasticsearch.host') . ':' . config('services.elasticsearch.port')])
-       ->build();
+        $client = ClientBuilder::create()
+            ->setHosts([config('services.elasticsearch.host').':'.config('services.elasticsearch.port')])
+            ->build();
 
         $index = config('services.elasticsearch.index');
 

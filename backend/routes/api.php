@@ -7,7 +7,6 @@ use App\Http\Controllers\Admin\AttributeValueController;
 use App\Http\Controllers\Admin\CategoryAttributeController;
 use App\Http\Controllers\Admin\CategoryController as AdminCategoryController;
 use App\Http\Controllers\Admin\CouponController as AdminCouponController;
-use App\Http\Controllers\Admin\DownloadController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ProductVariantController;
 use App\Http\Controllers\Admin\RefundController;
@@ -16,6 +15,7 @@ use App\Http\Controllers\Admin\ShippingMethodController as AdminShippingMethodCo
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CouponController;
+use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\ImageProxyController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\Product\CategoryController;

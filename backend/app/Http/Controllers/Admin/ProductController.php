@@ -68,7 +68,8 @@ class ProductController extends Controller
 
         $mediaService->syncPreviewImages($product);
 
-        if ($request->hasFile('asset_file')) {
+        // Only digital products carry a downloadable asset file.
+        if ($data['asset_type'] === 'digital' && $request->hasFile('asset_file')) {
             $product->addMedia($request->file('asset_file'))->toMediaCollection('asset');
         }
 
@@ -79,7 +80,6 @@ class ProductController extends Controller
             'data' => new ProductResource($product),
         ], 201);
     }
-
     /* ================= DELETE MEDIA ================= */
 
     public function deleteMedia(Product $product, $mediaId)
@@ -143,7 +143,18 @@ class ProductController extends Controller
             // ================= MEDIA SYNC =================
             $mediaService->syncPreviewImages($product, true);
 
-            if ($request->hasFile('asset_file')) {
+            // asset_type may be omitted on a partial update - fall back to
+            // the product's current (possibly just-updated) value.
+            //
+            // Non-destructive by design: switching away from "digital" does
+            // NOT delete an existing asset file. It just stops being served -
+            // the frontend only shows/offers the asset for digital products
+            // (see ProductForm.tsx and download logic). This avoids losing an
+            // uploaded ZIP just because an admin toggled the type back and
+            // forth while editing.
+            $assetType = $data['asset_type'] ?? $product->asset_type;
+
+            if ($assetType === 'digital' && $request->hasFile('asset_file')) {
                 $product->clearMediaCollection('asset');
                 $product->addMedia($request->file('asset_file'))
                     ->toMediaCollection('asset');
@@ -174,9 +185,6 @@ class ProductController extends Controller
                 ->merge($wisherIds)
                 ->unique()
                 ->values();
-
-            // (optional) if you need full user models later
-            // $users = \App\Models\User::whereIn('id', $userIds)->get();
 
             $message = "Product '{$product->title}' has been updated by admin";
 
