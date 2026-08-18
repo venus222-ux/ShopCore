@@ -109,6 +109,36 @@ services:
       - PUSHER_SCHEME=http
 
   # ─────────────────────────────────────────────
+  # Laravel Scheduler
+  # ─────────────────────────────────────────────
+  laravel_scheduler:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: shopcore_scheduler
+    restart: unless-stopped
+    command: php artisan schedule:work
+    volumes:
+      - ./backend:/var/www/html
+      - backend_vendor:/var/www/html/vendor
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    environment:
+      - APP_ENV=local
+      - APP_NAME=Shopcore
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=shopcore
+      - DB_USERNAME=shopcore
+      - DB_PASSWORD=secret
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+
+  # ─────────────────────────────────────────────
   # Frontend (React + Vite)
   # ─────────────────────────────────────────────
   frontend:

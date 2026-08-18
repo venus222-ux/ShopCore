@@ -246,6 +246,7 @@ https://dashboard.stripe.com/
 php artisan elasticsearch:setup    # șterge + recreează indexul cu mapping-ul corect
 php artisan products:reindex       # abia acum populează cu date
 
-backend:
-Schedule::command('orders:release-stale-reservations --hours=24')->hourly();
-Schedule::command('orders:release-stale-cash --days=14')->daily();
+
+Testare:
+php artisan orders:release-stale-reservations --hours=24
+php artisan orders:release-stale-cash --days=14
