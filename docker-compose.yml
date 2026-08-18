@@ -8,13 +8,12 @@ services:
       dockerfile: Dockerfile
     container_name: shopcore_app
     restart: unless-stopped
-
     ports:
       - "8000:8000"
-
     volumes:
       - ./backend:/var/www/html
       - backend_vendor:/var/www/html/vendor
+      - ./Caddyfile:/etc/caddy/Caddyfile
     depends_on:
       mysql:
         condition: service_healthy
