@@ -27,6 +27,7 @@ class Product extends Model implements HasMedia
         'discount_fixed',
         'discount_starts_at',
         'discount_ends_at',
+        'preview_image',
         'parent_id',
     ];
 

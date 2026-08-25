@@ -1,0 +1,19 @@
+/* src/styles/theme.css */
+:root {
+  --bg: #faf9f7;
+  --surface: #ffffff;
+  --text: #111111;
+  --muted: #666666;
+  --accent: #c9a66b;       /* auriu — CTA-uri, prețuri, hover */
+  --border: #eee;
+  --radius: 20px;
+  --shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+
+  /* NOU — accente colorate, ca în raftul de categorii / tile-urile promo din Home */
+  --accent-peach: #f3ddc4;
+  --accent-peach-soft: #f8e9d8;
+  --accent-blue: #cfe3ea;
+  --accent-sage: #d7e2c6;
+  --accent-coral: #e2725b;   /* reduceri, badge-uri "sale"/"new" */
+  --accent-coral-soft: #fbe4de;
+}

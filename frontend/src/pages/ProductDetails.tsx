@@ -25,12 +25,13 @@ const ProductDetails = () => {
     enabled: !!slug,
   });
 
-  const previews = useMemo((): string[] => {
-    if (!product) return [];
-    if (Array.isArray(product.preview_urls) && product.preview_urls.length > 0) return product.preview_urls;
-    if (product.preview_url) return [product.preview_url];
-    return [];
-  }, [product]);
+const previews = useMemo((): string[] => {
+  if (!product) return [];
+  if (Array.isArray(product.preview_urls) && product.preview_urls.length > 0) return product.preview_urls;
+  if (product.preview_url) return [product.preview_url];
+  if (product.preview_image) return [product.preview_image];
+  return [];
+}, [product]);
 
   const hasDiscount = !!product?.has_discount;
   const finalPrice = product?.final_price ?? product?.price ?? 0;
@@ -127,8 +128,7 @@ console.log("Proxy:", getProxiedImageUrl(previews[currentIndex]));
           <div className="col-lg-5">
             <div className="sticky-top" style={{ top: "6rem" }}>
               <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
-                {product.is_new && <span className="badge bg-primary rounded-pill px-3 py-2">NEW</span>}
-                <span className={`${styles.assetTypeBadge}`}>{product.asset_type || "Digital Asset"}</span>
+{product.is_new && <span className={`${styles.newBadge} badge px-3 py-2`}>NEW</span>}                <span className={`${styles.assetTypeBadge}`}>{product.asset_type || "Digital Asset"}</span>
                 {hasDiscount && <span className={`${styles.saleBadge}`}>{discountBadgeLabel}</span>}
               </div>
 

@@ -1,12 +1,11 @@
-/* FiltersSidebar.module.css */
 .sidebar {
-  background: white;
+  background: var(--surface);
   padding: 24px;
-  border-radius: 20px;
-  border: 1px solid #e2e8f0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
   position: sticky;
   top: 24px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow);
 }
 
 .header {
@@ -19,17 +18,24 @@
 .header h3 {
   font-size: 1.1rem;
   font-weight: 700;
+  color: var(--text);
+  margin: 0;
 }
 
 .section {
   margin-bottom: 32px;
 }
 
+.section:last-of-type {
+  margin-bottom: 0;
+}
+
 .label {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 700;
-  color: #64748b;
+  color: var(--muted);
   text-transform: uppercase;
+  letter-spacing: 0.4px;
   margin-bottom: 12px;
   display: block;
 }
@@ -37,54 +43,80 @@
 .input {
   width: 100%;
   padding: 12px 16px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #faf9f7;
+  border: 1px solid var(--border);
   border-radius: 12px;
   font-size: 0.9rem;
-  transition: all 0.2s;
+  color: var(--text);
+  transition: all 0.2s ease;
 }
 
 .input:focus {
-  background: white;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+  outline: none;
+  background: #fff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(201, 166, 107, 0.15);
 }
 
+.priceGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+/* Chip-uri cu wrap — valabile atât pentru Asset Type (2 opțiuni), cât
+   și pentru facets dinamice (posibil 20-50 valori per atribut) */
 .pillContainer {
   display: flex;
-  background: #f1f5f9;
-  padding: 4px;
-  border-radius: 10px;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .pill {
-  flex: 1;
-  padding: 8px;
-  border: none;
-  background: transparent;
-  font-size: 0.85rem;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  background: #faf9f7;
+  color: var(--muted);
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  border-radius: 8px;
-  transition: 0.2s;
+  border-radius: 999px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  border-color: var(--accent);
+  color: var(--text);
 }
 
 .pillActive {
-  background: white;
-  color: #2563eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.pillActive:hover {
+  border-color: var(--text);
+  color: #fff;
 }
 
 .resetBtn {
-  color: #64748b;
+  color: var(--muted);
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   background: none;
   border: none;
   cursor: pointer;
+  transition: color 0.2s ease;
 }
 
 .resetBtn:hover {
-  color: #ef4444;
+  color: var(--accent-coral);
+}
+
+.footer {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 }

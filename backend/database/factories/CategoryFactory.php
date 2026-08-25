@@ -9,34 +9,13 @@ class CategoryFactory extends Factory
 {
     public function definition(): array
     {
-        $categories = [
-            'Flyers',
-            'Brochures',
-            'Business Cards',
-            'Posters',
-            'Banners',
-            'Stickers',
-            'Menus',
-            'Invitations',
-            'Roll-Up Banners',
-            'Packaging',
-            'Labels',
-            'Booklets',
-            'Catalogs',
-            'Letterheads',
-            'Envelopes',
-            'Folders',
-            'Calendars',
-            'Magazines',
-            'Greeting Cards',
-            'T-Shirts',
-        ];
-
-        $name = $this->faker->unique()->randomElement($categories);
+        // We will override this in the seeder for controlled hierarchy
+        $name = $this->faker->unique()->words(2, true);
 
         return [
-            'name' => $name,
+            'name' => ucfirst($name),
             'slug' => Str::slug($name),
+            'parent_id' => null,
         ];
     }
 }

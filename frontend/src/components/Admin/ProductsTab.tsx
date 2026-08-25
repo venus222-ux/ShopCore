@@ -11,6 +11,14 @@ import {
   Circle,
   ChevronLeft,
   ChevronRight,
+  DollarSign,
+  ShoppingBag,
+  Clock,
+  RotateCcw,
+  Users,
+  Receipt,
+  TrendingUp,
+  Percent,
 } from "lucide-react";
 
 const ProductsTab: React.FC = () => {
@@ -51,39 +59,53 @@ const ProductsTab: React.FC = () => {
           gap: "24px",
         }}
       >
-        {/* KPI CARDS GRID */}
+        {/* KPI CARDS ROW */}
         {dashboardStats && (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: "16px",
-            }}
-          >
+          <div className={styles.statsRow}>
             <KpiCard
-              title="Today's Revenue"
+              label="Today's Revenue"
               value={`$${dashboardStats.kpis.today_revenue}`}
+              icon={<DollarSign size={18} />}
             />
             <KpiCard
-              title="This Month"
+              label="This Month"
               value={`$${dashboardStats.kpis.month_revenue}`}
+              icon={<TrendingUp size={18} />}
             />
-            <KpiCard title="Orders" value={dashboardStats.kpis.total_orders} />
             <KpiCard
-              title="Pending Orders"
+              label="Orders"
+              value={dashboardStats.kpis.total_orders}
+              icon={<ShoppingBag size={18} />}
+              tone="blue"
+            />
+            <KpiCard
+              label="Pending Orders"
               value={dashboardStats.kpis.pending_orders}
-              highlight="orange"
+              icon={<Clock size={18} />}
+              tone="amber"
             />
             <KpiCard
-              title="Refunds"
+              label="Refunds"
               value={dashboardStats.kpis.refunds}
-              highlight="red"
+              icon={<RotateCcw size={18} />}
+              tone="red"
             />
-            <KpiCard title="New Users" value={dashboardStats.kpis.new_users} />
-            <KpiCard title="AOV" value={`$${dashboardStats.kpis.aov}`} />
             <KpiCard
-              title="Conversion Rate"
+              label="New Users"
+              value={dashboardStats.kpis.new_users}
+              icon={<Users size={18} />}
+              tone="violet"
+            />
+            <KpiCard
+              label="AOV"
+              value={`$${dashboardStats.kpis.aov}`}
+              icon={<Receipt size={18} />}
+            />
+            <KpiCard
+              label="Conversion Rate"
               value={`${dashboardStats.kpis.conversion_rate}%`}
+              icon={<Percent size={18} />}
+              tone="blue"
             />
           </div>
         )}
@@ -287,27 +309,26 @@ const ProductsTab: React.FC = () => {
   );
 };
 
-// Simple reusable KPI component
+// Reusable KPI card — accent tone comes from data-tone, styled in
+// AdminDashboard.module.css (.statCard / .statIcon). Defaults to the
+// emerald brand tone when no tone is given.
 const KpiCard = ({
-  title,
+  label,
   value,
-  highlight,
+  icon,
+  tone,
 }: {
-  title: string;
+  label: string;
   value: string | number;
-  highlight?: string;
+  icon: React.ReactNode;
+  tone?: "amber" | "red" | "blue" | "violet";
 }) => (
-  <div
-    className={styles.glassCard}
-    style={{
-      padding: "16px",
-      borderLeft: highlight ? `4px solid ${highlight}` : "none",
-    }}
-  >
-    <p style={{ margin: 0, fontSize: "14px", color: "#6b7280" }}>{title}</p>
-    <h3 style={{ margin: "8px 0 0 0", fontSize: "24px", fontWeight: "bold" }}>
-      {value}
-    </h3>
+  <div className={styles.statCard} data-tone={tone}>
+    <div className={styles.statCardBody}>
+      <span className={styles.statLabel}>{label}</span>
+      <span className={styles.statValue}>{value}</span>
+    </div>
+    <div className={styles.statIcon}>{icon}</div>
   </div>
 );
 

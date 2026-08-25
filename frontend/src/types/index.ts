@@ -255,6 +255,7 @@ export interface Product {
   is_published: boolean;
   is_wishlisted?: boolean;
 
+  preview_image?: string;
   preview_url?: string;
   preview_urls?: string[];
 

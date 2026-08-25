@@ -14,19 +14,22 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-
   const addToCart = useCartStore((s) => s.addToCart);
 
-  const previewUrl = product?.preview_urls?.[0] || product?.preview_url || null;
+  const previewUrl =
+    product?.preview_urls?.[0] ||
+    product?.preview_url ||
+    product?.preview_image ||
+    null;
 
-  // Price & Discount Math - mirrors ProductDetails exactly: pricing is
-  // always the product's own final_price/price, regardless of which
-  // variant is selected. VariantSelector only gates add-to-cart and stock.
   const finalPrice = Number(product.final_price ?? product.price ?? 0);
   const originalPrice = Number(product.price ?? 0);
-  const hasDiscount = !!product.has_discount && originalPrice > 0 && finalPrice < originalPrice;
+  const hasDiscount =
+    !!product.has_discount && originalPrice > 0 && finalPrice < originalPrice;
   const savings = originalPrice - finalPrice;
-  const discountPercent = hasDiscount ? Math.round((savings / originalPrice) * 100) : 0;
+  const discountPercent = hasDiscount
+    ? Math.round((savings / originalPrice) * 100)
+    : 0;
 
   const variantCount = product.variants?.length || 0;
   const hasMultipleVariants = variantCount > 1;
@@ -35,16 +38,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
 
-  // Reset selection whenever the underlying product changes - same guard
-  // ProductDetails uses (there, keyed off product.id in a useEffect).
   useEffect(() => {
     setSelectedVariant(null);
   }, [product.id]);
 
   const canAddToCart =
-    !hasMultipleVariants || (selectedVariant !== null && selectedVariant.in_stock !== false);
+    !hasMultipleVariants ||
+    (selectedVariant !== null && selectedVariant.in_stock !== false);
 
-  const addToCartLabel = hasMultipleVariants && !selectedVariant ? "Select Options" : "Add to Cart";
+  const addToCartLabel =
+    hasMultipleVariants && !selectedVariant ? "Select" : "Add to Cart";
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -66,24 +69,19 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <div className={styles.card}>
-      {/* MEDIA GALLERY */}
+      {/* MEDIA CONTAINER */}
       <div className={styles.mediaContainer}>
         <div className={styles.badgesTopLeft}>
           {isNew && <span className={styles.badgeNew}>NEW</span>}
           {hasDiscount && discountPercent > 0 && (
-            <span className={styles.badgeDiscountRibbon}>{discountPercent}% OFF</span>
+            <span className={styles.badgeDiscountRibbon}>
+              -{discountPercent}%
+            </span>
           )}
         </div>
 
         <div className={styles.badgesTopRight}>
           <WishlistButton product={product} />
-        </div>
-
-        <div className={styles.badgesBottomLeft}>
-          <span className={styles.badgeAssetType}>{product.asset_type || "Standard"}</span>
-          {product.category?.name && (
-            <span className={styles.badgeCategory}>{product.category.name}</span>
-          )}
         </div>
 
         <Link to={`/products/${product.slug}`} className={styles.imageLink}>
@@ -98,7 +96,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
               }}
             />
           ) : (
-            <div className={styles.noPreview}>No Preview</div>
+            <div className={styles.noPreview}>No Preview Available</div>
           )}
         </Link>
       </div>
@@ -106,20 +104,20 @@ const ProductCard = ({ product }: ProductCardProps) => {
       {/* CONTENT BODY */}
       <div className={styles.content}>
         <div className={styles.metaRow}>
-          <div className={styles.ratingPlaceholder}>
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={14} fill="#fbbf24" color="#fbbf24" />
-            ))}
-            <span className={styles.reviewCount}>(24)</span>
+          <div className={styles.ratingBadge}>
+            <Star size={12} fill="#eab308" color="#eab308" />
+            <span>4.8</span>
+            <span className={styles.ratingCount}>(24)</span>
           </div>
+
           <div className={styles.stockIndicator}>
             {isDigital ? (
-              <span className="text-success fw-medium d-flex align-items-center gap-1">
-                <Zap size={12} /> In Stock
+              <span style={{ color: "#16a34a" }} className="d-flex align-items-center gap-1">
+                <Zap size={12} /> Instant
               </span>
             ) : (
-              <span className="text-primary fw-medium d-flex align-items-center gap-1">
-                <Box size={12} /> Ships Fast
+              <span style={{ color: "#2563eb" }} className="d-flex align-items-center gap-1">
+                <Box size={12} /> In Stock
               </span>
             )}
           </div>
@@ -128,48 +126,62 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <Link to={`/products/${product.slug}`} className={styles.titleLink}>
           <h3 className={styles.title}>{product.title}</h3>
         </Link>
+
         <p className={styles.shortDescLineClamp}>
-          {product.short_description || product.description || "Premium product crafted for modern creators."}
+          {product.short_description ||
+            product.description ||
+            "Premium quality fashion item crafted for modern lifestyles."}
         </p>
 
-        {/* Inline variant picker - same component/logic as ProductDetails,
-            so options can be picked directly from the card instead of
-            forcing a redirect to the details page. */}
         {hasMultipleVariants && (
-          <div className={styles.variantSelectorWrapper} onClick={(e) => e.stopPropagation()}>
-            <VariantSelector variants={product.variants ?? []} onChange={setSelectedVariant} />
+          <div
+            className={styles.variantSelectorWrapper}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <VariantSelector
+              variants={product.variants ?? []}
+              onChange={setSelectedVariant}
+            />
           </div>
         )}
 
-        {/* Pricing Area */}
+        {/* PRICE SECTION */}
         <div className={styles.priceSection}>
-          <div className={styles.priceGroup}>
-            <span className={styles.finalPrice}>${finalPrice.toFixed(2)}</span>
-            {hasDiscount && <span className={styles.oldPrice}>${originalPrice.toFixed(2)}</span>}
-          </div>
-          {hasDiscount && savings > 0 && (
-            <div className={styles.savingsLabel}>Save ${savings.toFixed(2)}</div>
+          <span className={styles.finalPrice}>${finalPrice.toFixed(2)}</span>
+          {hasDiscount && (
+            <>
+              <span className={styles.oldPrice}>
+                ${originalPrice.toFixed(2)}
+              </span>
+              {savings > 0 && (
+                <span className={styles.savingsLabel}>
+                  Save ${savings.toFixed(2)}
+                </span>
+              )}
+            </>
           )}
         </div>
 
-        {/* Footer Actions */}
+        {/* ACTIONS */}
         <div className={styles.footerActions}>
           <button
             onClick={handleAddToCart}
             disabled={!canAddToCart}
             className={styles.btnAddToCart}
           >
-            <ShoppingCart size={16} />
+            <ShoppingCart size={15} />
             {addToCartLabel}
           </button>
-          <Link to={`/products/${product.slug}`} className={styles.btnViewDetails}>
-            View Details
+          <Link
+            to={`/products/${product.slug}`}
+            className={styles.btnViewDetails}
+          >
+            Details
           </Link>
         </div>
 
-        {/* Fulfillment Tag */}
         <div className={styles.fulfillmentTag}>
-          {isDigital ? "📥 Instant Download Available" : "🚚 Ships within 24 Hours"}
+          {isDigital ? "Instant Download" : "Ships within 24 Hours"}
         </div>
       </div>
     </div>

@@ -1,4 +1,11 @@
-import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
+import {
+  CheckCircle2,
+  XCircle,
+  Loader2,
+  Tag,
+} from "lucide-react";
+
+import styles from "../../styles/Checkout.module.css";
 
 interface CouponCodeProps {
   couponCode: string;
@@ -21,41 +28,97 @@ export default function CouponCode({
   onRemove,
 }: CouponCodeProps) {
   return (
-    <div className="border rounded-3 p-3 mt-3 mb-4">
-      <label className="fw-semibold small text-muted d-block mb-2">Coupon code</label>
+    <div className={styles.couponBox}>
+      <div className={styles.couponHeader}>
+        <div className={styles.couponTitle}>
+          <Tag size={16} />
+
+          <span>Have a coupon?</span>
+        </div>
+
+        <span className={styles.couponOptional}>
+          Optional
+        </span>
+      </div>
 
       {appliedDiscount !== null ? (
-        <div className="d-flex align-items-center justify-content-between">
-          <span className="d-flex align-items-center gap-2 text-success">
-            <CheckCircle2 size={16} />
-            <strong>{couponCode}</strong> applied — -${appliedDiscount.toFixed(2)}
-          </span>
-          <button onClick={onRemove} className="btn btn-sm btn-outline-secondary">
+        <div className={styles.couponApplied}>
+          <div className={styles.couponSuccess}>
+            <CheckCircle2 size={18} />
+
+            <div>
+              <strong>{couponCode}</strong>
+
+              <span>
+                Coupon applied · -$
+                {appliedDiscount.toFixed(2)}
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onRemove}
+            className={styles.couponRemove}
+          >
             Remove
           </button>
         </div>
       ) : (
-        <div className="d-flex gap-2">
+        <div className={styles.couponForm}>
           <input
             type="text"
-            className="form-control"
-            placeholder="Enter code"
+            placeholder="Enter coupon code"
             value={couponCode}
-            onChange={(e) => setCouponCode(e.target.value)}
+            onChange={(e) =>
+              setCouponCode(e.target.value)
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+
+                if (
+                  couponCode.trim() &&
+                  !validateCoupon.isPending
+                ) {
+                  onApply();
+                }
+              }
+            }}
+            className={styles.couponInput}
+            autoComplete="off"
           />
+
           <button
+            type="button"
             onClick={onApply}
-            disabled={validateCoupon.isPending || !couponCode.trim()}
-            className="btn btn-outline-primary text-nowrap"
+            disabled={
+              validateCoupon.isPending ||
+              !couponCode.trim()
+            }
+            className={styles.couponApply}
           >
-            {validateCoupon.isPending ? <Loader2 size={16} className="spinner" /> : "Apply"}
+            {validateCoupon.isPending ? (
+              <>
+                <Loader2
+                  size={16}
+                  className={styles.spinner}
+                />
+
+                Checking
+              </>
+            ) : (
+              "Apply"
+            )}
           </button>
         </div>
       )}
 
       {couponError && (
-        <div className="d-flex align-items-center gap-1 text-danger small mt-2">
-          <XCircle size={14} /> {couponError}
+        <div className={styles.couponError}>
+          <XCircle size={15} />
+
+          <span>{couponError}</span>
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 import React from "react";
 import {
-  LayoutDashboard,
+  Store,
   Package,
   Layers,
   Tags,
@@ -38,8 +38,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({
   return (
     <nav className={styles.sidebar}>
       <div className={styles.logo}>
-        <LayoutDashboard size={24} />
-        <span>AdminPanel</span>
+        <Store size={20} />
+        <span>ShopCore</span>
       </div>
 
       <ul className={styles.navLinks}>

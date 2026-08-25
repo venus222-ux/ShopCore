@@ -1,4 +1,5 @@
-import { ArrowRight, Loader2 } from "lucide-react";
+import { ArrowRight, LockKeyhole, Loader2 } from "lucide-react";
+import styles from "../../styles/Checkout.module.css";
 
 interface PlaceOrderButtonProps {
   onClick: () => void;
@@ -6,17 +7,47 @@ interface PlaceOrderButtonProps {
   totalPrice: number;
 }
 
-export default function PlaceOrderButton({ onClick, loading, totalPrice }: PlaceOrderButtonProps) {
+export default function PlaceOrderButton({
+  onClick,
+  loading,
+  totalPrice,
+}: PlaceOrderButtonProps) {
   return (
-    <button onClick={onClick} className="payBtn" disabled={loading}>
+    <button
+      type="button"
+      className={styles.payBtn}
+      onClick={onClick}
+      disabled={loading}
+      aria-label="Complete purchase"
+    >
       {loading ? (
-        <span className="d-flex align-items-center justify-content-center gap-2">
-          <Loader2 size={18} className="spinner" /> Allocating Core Line Order...
-        </span>
+        <>
+          <Loader2
+            size={19}
+            strokeWidth={2}
+            className={styles.spinner}
+          />
+
+          <span>Processing...</span>
+        </>
       ) : (
-        <span className="d-flex align-items-center justify-content-center gap-2">
-          Complete Purchase — ${totalPrice.toFixed(2)} <ArrowRight size={16} />
-        </span>
+        <>
+          <LockKeyhole
+            size={18}
+            strokeWidth={2}
+          />
+
+          <span>Complete Purchase</span>
+
+          <span className={styles.payBtnAmount}>
+            ${totalPrice.toFixed(2)}
+          </span>
+
+          <ArrowRight
+            size={18}
+            strokeWidth={2}
+          />
+        </>
       )}
     </button>
   );

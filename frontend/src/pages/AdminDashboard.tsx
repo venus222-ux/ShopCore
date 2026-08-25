@@ -13,7 +13,7 @@ import OrdersTab from "../components/Admin/OrdersTab";
 import RefundRequestsTab from "../components/Admin/RefundRequestsTab";
 import CouponsTab from "../components/Admin/CouponsTab";
 
-import { Search, Download } from "lucide-react";
+import { Search, Download, Bell, MessageSquare } from "lucide-react";
 
 type TabType =
   | "products"
@@ -25,6 +25,54 @@ type TabType =
   | "orders"
   | "refund-requests"
   | "coupons";
+
+const TAB_COPY: Record<TabType, { title: string; subtitle: string }> = {
+  products: {
+    title: "Inventory Overview",
+    subtitle: "Track catalog performance and manage every listing in one place.",
+  },
+  categories: {
+    title: "Category Management",
+    subtitle: "Organize how products are grouped and filtered across the storefront.",
+  },
+  attributes: {
+    title: "Attributes Management",
+    subtitle: "Define the option sets — color, size, format — used to build variants.",
+  },
+  shipping: {
+    title: "Shipping Methods",
+    subtitle: "Configure the delivery options shown to customers at checkout.",
+  },
+  logs: {
+    title: "System Logs",
+    subtitle: "Every file uploaded to the store, with its origin and footprint.",
+  },
+  users: {
+    title: "User Management",
+    subtitle: "View and manage everyone with an account on the store.",
+  },
+  orders: {
+    title: "Orders Management",
+    subtitle: "Track payments, fulfilment and refunds across every order.",
+  },
+  "refund-requests": {
+    title: "Refund Requests",
+    subtitle: "Review customer-submitted refund requests awaiting a decision.",
+  },
+  coupons: {
+    title: "Coupon Management",
+    subtitle: "Create and manage discount codes available at checkout.",
+  },
+};
+
+const initials = (name: string) =>
+  name
+    .split(" ")
+    .map((part) => part[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
 const AdminDashboard: React.FC = () => {
   const {
@@ -39,6 +87,7 @@ const AdminDashboard: React.FC = () => {
     deleteUser,
     refundRequests,
     fetchRefundRequests,
+    currentAdmin, // optional: { name, role } — falls back gracefully below
   } = useAdminStore();
 
   const [activeTab, setActiveTab] = useState<TabType>("products");
@@ -62,6 +111,10 @@ const AdminDashboard: React.FC = () => {
     }
   }, [activeTab, searchTerm]);
 
+  const adminName = currentAdmin?.name || "Admin";
+  const adminRole = currentAdmin?.role || "Administrator";
+  const copy = TAB_COPY[activeTab];
+
   return (
     <div className={styles.appWrapper}>
       <AdminSidebar
@@ -73,41 +126,52 @@ const AdminDashboard: React.FC = () => {
       <div className={styles.mainContainer}>
         <header className={styles.topBar}>
           <div className={styles.searchBox}>
-            <Search size={18} />
+            <Search size={17} />
             <input
               placeholder={
                 activeTab === "logs"
                   ? "Search logs..."
                   : activeTab === "users"
                     ? "Search users..."
-                    : "Search database..."
+                    : "Search products, orders, customers..."
               }
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
 
-          {activeTab === "logs" && (
-            <button onClick={exportLogs} className={styles.exportBtn}>
-              <Download size={18} />
-              <span>Export CSV</span>
+          <div className={styles.topBarActions}>
+            {activeTab === "logs" && (
+              <button onClick={exportLogs} className={styles.exportBtn}>
+                <Download size={16} />
+                <span>Export CSV</span>
+              </button>
+            )}
+
+            <button className={styles.iconAction} title="Messages">
+              <MessageSquare size={17} />
             </button>
-          )}
+            <button className={styles.iconAction} title="Notifications">
+              <Bell size={17} />
+              <span className={styles.iconDot} />
+            </button>
+
+            <div className={styles.profileChip}>
+              <div className={styles.profileAvatar}>{initials(adminName)}</div>
+              <div className={styles.profileMeta}>
+                <span className={styles.profileName}>{adminName}</span>
+                <span className={styles.profileRole}>{adminRole}</span>
+              </div>
+            </div>
+          </div>
         </header>
 
         <main className={styles.content}>
           <div className={styles.welcome}>
-            <h1>
-              {activeTab === "products" && "Inventory Overview"}
-              {activeTab === "categories" && "Category Management"}
-              {activeTab === "attributes" && "Attributes Management"}
-              {activeTab === "shipping" && "Shipping Methods"}
-              {activeTab === "logs" && "System Logs"}
-              {activeTab === "users" && "User Management"}
-              {activeTab === "orders" && "Orders Management"}
-              {activeTab === "refund-requests" && "Refund Requests"}
-              {activeTab === "coupons" && "Coupon Management"}
-            </h1>
+            <div>
+              <h1>{copy.title}</h1>
+              <p>{copy.subtitle}</p>
+            </div>
           </div>
 
           {activeTab === "products" && <ProductsTab />}
