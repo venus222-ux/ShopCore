@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useCartStore } from "../store/useCartStore";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/Cart.module.css";
@@ -17,11 +17,30 @@ import {
 
 import { useSettingsStore } from "../store/useSettingsStore";
 
+// Falls back to the placeholder exactly once per image - tracking the
+// failure in React state (rather than mutating e.currentTarget.src
+// directly) stops the browser from re-triggering onError in a loop if
+// the placeholder itself is briefly unavailable or the image flaps.
+const CartItemImage = ({ src, alt }: { src: string; alt: string }) => {
+  const [errored, setErrored] = useState(false);
+
+  return (
+    <img
+      src={errored ? "/placeholder.png" : src}
+      alt={alt}
+      className={styles.productImg}
+      loading="lazy"
+      onError={() => {
+        if (!errored) setErrored(true);
+      }}
+    />
+  );
+};
+
 const Cart = () => {
   const navigate = useNavigate();
   const { items, removeFromCart, increaseQty, decreaseQty } = useCartStore();
 
-  // 📊 CALCULATE COMPREHENSIVE SUB-TOTALS & ASSET MARKDOWNS
   const {
     totalItems,
     totalOriginalSubtotal,
@@ -59,18 +78,29 @@ const Cart = () => {
   const vat = totalFinalSubtotal * vatRate;
   const totalPrice = totalFinalSubtotal + vat;
 
+  const getSelectedVariant = (item: CartItem) => {
+    if (!item.variants?.length || !item.variant_id) return null;
+    return item.variants.find((v) => v.id === item.variant_id) ?? null;
+  };
+
   const getVariantAttributes = (item: CartItem) => {
-    if (!item.variants?.length || !item.variant_id) return [];
-
-    const variant = item.variants.find((v) => v.id === item.variant_id);
+    const variant = getSelectedVariant(item);
     if (!variant?.attribute_values?.length) return [];
-
     return variant.attribute_values;
   };
 
-  // Helper to safely render attribute display
+  const getItemImage = (item: CartItem) => {
+    const variant = getSelectedVariant(item);
+    const variantImage = variant?.images?.[0];
+
+    if (variantImage) return variantImage;
+
+    return Array.isArray(item.preview_urls)
+      ? item.preview_urls[0]
+      : item.preview_url || item.preview_urls;
+  };
+
   const renderAttribute = (attr: any) => {
-    // Case 1: Full AttributeValue (has nested attribute)
     if (attr.attribute?.name) {
       return (
         <span key={attr.id} className={styles.attributeChip}>
@@ -79,7 +109,6 @@ const Cart = () => {
       );
     }
 
-    // Case 2: VariantAttributeValue (flattened)
     return (
       <span key={attr.id || attr.value} className={styles.attributeChip}>
         <strong>{attr.name || "Attribute"}</strong> {attr.value}
@@ -115,107 +144,91 @@ const Cart = () => {
       <h1 className={styles.sectionTitle}>Shopping Cart Workspace</h1>
 
       <div className={styles.cartGrid}>
-        {/* LEFT COLUMN: ITEM MANIFEST */}
         <div className={styles.itemList}>
-        {items.map((item) => {
-  const image = Array.isArray(item.preview_urls)
-    ? item.preview_urls[0]
-    : item.preview_url || item.preview_urls;
+          {items.map((item) => {
+            const image = getItemImage(item);
+            const imageUrl = getProxiedImageUrl(image);
 
-  const imageUrl = image
-    ? getProxiedImageUrl(image)
-    : "/placeholder.png";
+            const isDiscounted = !!item.has_discount;
+            const originalPrice = Number(item.price || 0);
+            const unitPrice =
+              isDiscounted && item.final_price !== undefined
+                ? Number(item.final_price)
+                : originalPrice;
 
-  const isDiscounted = !!item.has_discount;
-  const originalPrice = Number(item.price || 0);
-  const unitPrice =
-    isDiscounted && item.final_price !== undefined
-      ? Number(item.final_price)
-      : originalPrice;
+            const actualDiscountPercentage =
+              originalPrice > 0 && unitPrice < originalPrice
+                ? Math.round(((originalPrice - unitPrice) / originalPrice) * 100)
+                : 0;
 
-  // Calcul simplu - fără useMemo în loop
-  const actualDiscountPercentage =
-    originalPrice > 0 && unitPrice < originalPrice
-      ? Math.round(((originalPrice - unitPrice) / originalPrice) * 100)
-      : 0;
+            return (
+              <div key={item.id} className={styles.itemCard}>
+                <CartItemImage src={imageUrl} alt={item.title} />
 
-  return (
-    <div key={item.id} className={styles.itemCard}>
-      <img
-        src={imageUrl}
-        alt={item.title}
-        className={styles.productImg}
-        loading="lazy"
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
-        }}
-      />
+                <div className={styles.itemDetails}>
+                  <div>
+                    <h5 className={styles.itemTitle}>{item.title}</h5>
+                    <p className={styles.itemCategory}>
+                      {item.category?.name || "Digital Asset"}
+                    </p>
+                  </div>
 
-      <div className={styles.itemDetails}>
-        <div>
-          <h5 className={styles.itemTitle}>{item.title}</h5>
-          <p className={styles.itemCategory}>
-            {item.category?.name || "Digital Asset"}
-          </p>
+                  {getVariantAttributes(item).length > 0 && (
+                    <div className={styles.attributeList}>
+                      {getVariantAttributes(item).map(renderAttribute)}
+                    </div>
+                  )}
+
+                  <button
+                    className={styles.removeBtn}
+                    onClick={() => removeFromCart(item.id, item.variant_id)}
+                  >
+                    <Trash2 size={14} /> <span>Remove</span>
+                  </button>
+                </div>
+
+                <div className={styles.qtyContainer}>
+                  <div className={styles.qtyControls}>
+                    <button
+                      className={styles.qtyBtn}
+                      onClick={() => decreaseQty(item.id, item.variant_id)}
+                      disabled={item.quantity <= 1}
+                    >
+                      <Minus size={12} />
+                    </button>
+                    <span className={styles.qtyValue}>{item.quantity}</span>
+                    <button
+                      className={styles.qtyBtn}
+                      onClick={() => increaseQty(item.id, item.variant_id)}
+                    >
+                      <Plus size={12} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.priceTag}>
+                  <span className={styles.calculatedPrice}>
+                    ${(item.quantity * unitPrice).toFixed(2)}
+                  </span>
+
+                  {isDiscounted && originalPrice > unitPrice && (
+                    <div className={styles.discountMetadata}>
+                      <span className={styles.itemOldPrice}>
+                        ${(item.quantity * originalPrice).toFixed(2)}
+                      </span>
+                      {actualDiscountPercentage > 0 && (
+                        <span className={styles.discountBadge}>
+                          <Percent size={10} /> {actualDiscountPercentage}% Off
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
-        {getVariantAttributes(item).length > 0 && (
-          <div className={styles.attributeList}>
-            {getVariantAttributes(item).map(renderAttribute)}
-          </div>
-        )}
-
-        <button
-          className={styles.removeBtn}
-          onClick={() => removeFromCart(item.id, item.variant_id)}
-        >
-          <Trash2 size={14} /> <span>Remove</span>
-        </button>
-      </div>
-
-      <div className={styles.qtyContainer}>
-        <div className={styles.qtyControls}>
-          <button
-            className={styles.qtyBtn}
-            onClick={() => decreaseQty(item.id, item.variant_id)}
-            disabled={item.quantity <= 1}
-          >
-            <Minus size={12} />
-          </button>
-          <span className={styles.qtyValue}>{item.quantity}</span>
-          <button
-            className={styles.qtyBtn}
-            onClick={() => increaseQty(item.id, item.variant_id)}
-          >
-            <Plus size={12} />
-          </button>
-        </div>
-      </div>
-
-      <div className={styles.priceTag}>
-        <span className={styles.calculatedPrice}>
-          ${(item.quantity * unitPrice).toFixed(2)}
-        </span>
-
-        {isDiscounted && originalPrice > unitPrice && (
-          <div className={styles.discountMetadata}>
-            <span className={styles.itemOldPrice}>
-              ${(item.quantity * originalPrice).toFixed(2)}
-            </span>
-            {actualDiscountPercentage > 0 && (
-              <span className={styles.discountBadge}>
-                <Percent size={10} /> {actualDiscountPercentage}% Off
-              </span>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-})}
-        </div>
-
-        {/* RIGHT COLUMN: DISCOUNTS-AWARE SUMMARY LEDGER */}
         <aside className={styles.summaryCard}>
           <h4 className={styles.summaryTitle}>Operational Manifest</h4>
 

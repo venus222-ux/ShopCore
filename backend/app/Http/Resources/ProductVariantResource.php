@@ -24,12 +24,27 @@ class ProductVariantResource extends JsonResource
                 ]);
             }),
 
-            // true = in stock, false = out of stock, true (default) if
-            // inventory isn't tracked at all (digital goods = unlimited)
             'in_stock' => $this->whenLoaded('inventory', function () {
                 return $this->inventory
                     ? ($this->inventory->track_stock ? $this->inventory->available > 0 : true)
                     : true;
+            }),
+
+            // Images are scoped per (product, attribute value) - a "Brown"
+            // belt and a "Brown" dress share the AttributeValue row but not
+            // its photos, since the media collection name is namespaced by
+            // this variant's own product id.
+            'images' => $this->whenLoaded('attributeValues', function () {
+                $collection = 'images-product-'.$this->product_id;
+
+                $withImages = $this->attributeValues->first(
+                    fn ($av) => $av->relationLoaded('media')
+                        && $av->getMedia($collection)->isNotEmpty()
+                );
+
+                return $withImages
+                    ? $withImages->getMedia($collection)->map(fn ($m) => $m->getFullUrl())->values()
+                    : [];
             }),
         ];
     }

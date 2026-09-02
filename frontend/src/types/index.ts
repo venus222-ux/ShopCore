@@ -124,6 +124,7 @@ export interface AttributeValue {
   slug: string;
   sort_order: number;
   attribute?: Attribute;
+  images?: VariantImage[]; // NEW — shared images for this value (e.g. all "Black" variants)
 }
 
 export interface Attribute {
@@ -154,12 +155,40 @@ export interface AdminVariantAttributeValue {
   attribute_id: number;
   attribute_name: string;
   value: string;
+  images?: VariantImage[]; // NEW — mirrors what the backend now sends
 }
 
 export interface AdminVariantInventory {
   track_stock: boolean;
   quantity: number;
   reserved: number;
+}
+
+export interface VariantImage {
+  id: number;
+  url: string;
+}
+
+export interface AttributeValue {
+  id: number;
+  attribute_id: number;
+  value: string;
+  slug: string;
+  sort_order: number;
+  attribute?: Attribute;
+  // NOTE: no bare `images` field here anymore - images are scoped per
+  // product now, so they're never attached to the global AttributeValue
+  // record itself. Product-scoped images arrive only through
+  // AdminProductVariant.attribute_values[].images (see below) and through
+  // ProductVariant.images on the storefront.
+}
+
+export interface AdminVariantAttributeValue {
+  value_id: number;
+  attribute_id: number;
+  attribute_name: string;
+  value: string;
+  images?: VariantImage[]; // product-scoped, resolved server-side per variant
 }
 
 export interface AdminProductVariant {
@@ -170,6 +199,21 @@ export interface AdminProductVariant {
   is_default: boolean;
   attribute_values: AdminVariantAttributeValue[];
   inventory: AdminVariantInventory | null;
+  images?: VariantImage[]; // resolved chain result, for admin preview
+}
+
+export interface ProductVariant {
+  id: number;
+  product_id?: number;
+  sku: string;
+  price: number;
+  old_price?: number | null;
+  has_discount?: boolean;
+  is_default?: boolean;
+  in_stock?: boolean;
+  inventory?: Inventory | null;
+  attribute_values: VariantAttributeValue[] | AttributeValue[];
+  images?: string[]; // resolved, product-scoped image URLs
 }
 
 export interface CreateVariantPayload {
@@ -213,6 +257,7 @@ export interface ProductVariant {
   in_stock?: boolean;
 
   inventory?: Inventory | null;
+  images?: string[];
 
   attribute_values: VariantAttributeValue[] | AttributeValue[];
 }

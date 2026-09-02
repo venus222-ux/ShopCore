@@ -135,6 +135,18 @@ Route::prefix('admin')->middleware(['jwt.auth', 'role:admin'])->group(function (
     Route::delete('/variants/{variant}', [ProductVariantController::class, 'destroy']);
     Route::put('/variants/{variant}/inventory', [ProductVariantController::class, 'updateInventory']);
 
+    Route::post('products/{product}/variants/{variant}/images', [ProductVariantController::class, 'uploadImages']);
+    Route::delete('variants/{variant}/images/{mediaId}', [ProductVariantController::class, 'deleteImage']);
+
+    Route::post('attribute-values/{attributeValue}/images', [AttributeValueController::class, 'uploadImages']);
+    Route::delete('attribute-values/{attributeValue}/images/{mediaId}', [AttributeValueController::class, 'deleteImage']);
+
+
+    Route::post('/products/{product}/attribute-values/{attributeValue}/images', [AttributeValueController::class, 'uploadImages']);
+    Route::delete('/products/{product}/attribute-values/{attributeValue}/images/{mediaId}', [AttributeValueController::class, 'deleteImage']);
+    Route::get('/products/{product}/attribute-values/{attributeValue}/images', [AttributeValueController::class, 'imagesForProduct']);
+
+
     // Shipping methods
     Route::get('/shipping-methods', [AdminShippingMethodController::class, 'index']);
     Route::post('/shipping-methods', [AdminShippingMethodController::class, 'store']);

@@ -403,3 +403,216 @@
     grid-template-columns: 1fr;
   }
 }
+
+
+
+/* ==================== COLOR GROUPS (WooCommerce-style) ==================== */
+.colorGroupList {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.colorGroupCard {
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.colorGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.colorGroupToggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0;
+  width: 100%;
+  text-align: left;
+}
+
+.colorGroupCount {
+  font-size: 11px;
+  color: #9ca3af;
+  font-weight: 500;
+  margin-left: auto;
+}
+
+.colorGroupImagesRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.colorGroupThumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.colorGroupUploadBtn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  background: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.colorGroupUploadBtn:hover {
+  background: #f3f4f6;
+}
+
+.colorGroupUploadBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ==================== SIZE ROWS (nested under each color group) ==================== */
+.sizeRowList {
+  display: flex;
+  flex-direction: column;
+}
+
+.sizeRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+}
+
+.sizeRow:last-child {
+  border-bottom: none;
+}
+
+.sizeRowMain {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 140px;
+}
+
+.sizeRowSku {
+  font-weight: 600;
+  font-size: 13px;
+  color: #111827;
+}
+
+.sizeRowSkuInput {
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+  width: 140px;
+}
+
+.sizeRowProps {
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.sizeRowStats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sizeRowStat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+}
+
+.sizeRowStatLabel {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+  font-weight: 700;
+}
+
+.sizeRowSmallInput {
+  width: 70px;
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 13px;
+}
+
+.sizeRowReserved {
+  font-size: 11px;
+  color: #b45309;
+  background: #fffbeb;
+  border-radius: 6px;
+  padding: 3px 7px;
+  white-space: nowrap;
+}
+
+.sizeRowActions {
+  display: flex;
+  gap: 6px;
+}
+
+/* shared icon buttons (unchanged) */
+.iconBtnIndigo { color: #4f46e5; background: none; border: none; cursor: pointer; display: flex; }
+.iconBtnRed { color: #ef4444; background: none; border: none; cursor: pointer; display: flex; }
+.iconBtnGreen { color: #16a34a; background: none; border: none; cursor: pointer; display: flex; }
+.iconBtnGray { color: #6b7280; background: none; border: none; cursor: pointer; display: flex; }
+
+.variantCardMuted {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.variantImageThumb {
+  position: relative;
+  width: 44px;
+  height: 44px;
+}
+
+.variantImageThumb img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #d1d5db;
+}
+
+.variantImageDelete {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  line-height: 16px;
+  cursor: pointer;
+  padding: 0;
+}

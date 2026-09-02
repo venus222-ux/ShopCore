@@ -13,9 +13,9 @@ class ProductVariantController extends Controller
     public function index(Product $product)
     {
         return $product->variants()
-            ->with(['attributeValues.attribute', 'inventory'])
+            ->with(['attributeValues.attribute', 'attributeValues.media', 'inventory'])
             ->get()
-            ->map(fn ($v) => $this->shape($v));
+            ->map(fn ($v) => $this->shape($v, $product->id));
     }
 
     public function store(Request $request, Product $product)
@@ -46,9 +46,9 @@ class ProductVariantController extends Controller
             'reserved' => 0,
         ]);
 
-        $variant->load(['attributeValues.attribute', 'inventory']);
+        $variant->load(['attributeValues.attribute', 'attributeValues.media', 'inventory']);
 
-        return response()->json($this->shape($variant), 201);
+        return response()->json($this->shape($variant, $product->id), 201);
     }
 
     public function update(Request $request, ProductVariant $variant)
@@ -73,9 +73,9 @@ class ProductVariantController extends Controller
             $variant->attributeValues()->sync($data['attribute_value_ids'] ?? []);
         }
 
-        $variant->load(['attributeValues.attribute', 'inventory']);
+        $variant->load(['attributeValues.attribute', 'attributeValues.media', 'inventory']);
 
-        return response()->json($this->shape($variant));
+        return response()->json($this->shape($variant, $variant->product_id));
     }
 
     public function destroy(ProductVariant $variant)
@@ -103,7 +103,9 @@ class ProductVariantController extends Controller
             'quantity' => $data['quantity'],
         ]);
 
-        return response()->json($this->shape($variant->fresh(['attributeValues.attribute', 'inventory'])));
+        $variant->load(['attributeValues.attribute', 'attributeValues.media', 'inventory']);
+
+        return response()->json($this->shape($variant->fresh(['attributeValues.attribute', 'attributeValues.media', 'inventory']), $variant->product_id));
     }
 
     private function generateSku(Product $product): string
@@ -113,8 +115,29 @@ class ProductVariantController extends Controller
         return 'SKU-'.strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)).'-'.Str::upper(Str::random(4));
     }
 
-    private function shape(ProductVariant $variant): array
+    /**
+     * Images resolved from this variant's attribute values, but scoped to
+     * THIS product - the same "Brown" AttributeValue row used by an
+     * unrelated product never leaks its photos here. This mirrors exactly
+     * what ProductVariantResource (storefront) and ProductSearchService
+     * (Elasticsearch) resolve, so the admin preview always matches what
+     * shoppers actually see.
+     */
+    private function shape(ProductVariant $variant, int $productId): array
     {
+        $collection = 'images-product-'.$productId;
+
+        $withImages = $variant->attributeValues->first(
+            fn ($av) => $av->getMedia($collection)->isNotEmpty()
+        );
+
+        $images = $withImages
+            ? $withImages->getMedia($collection)->map(fn ($m) => [
+                'id' => $m->id,
+                'url' => $m->getFullUrl(),
+            ])->values()
+            : collect();
+
         return [
             'id' => $variant->id,
             'sku' => $variant->sku,
@@ -126,12 +149,17 @@ class ProductVariantController extends Controller
                 'attribute_id' => $av->attribute_id,
                 'attribute_name' => $av->attribute->name,
                 'value' => $av->value,
+                'images' => $av->getMedia($collection)->map(fn ($m) => [
+                    'id' => $m->id,
+                    'url' => $m->getFullUrl(),
+                ])->values(),
             ]),
             'inventory' => $variant->inventory ? [
                 'track_stock' => (bool) $variant->inventory->track_stock,
                 'quantity' => $variant->inventory->quantity,
                 'reserved' => $variant->inventory->reserved,
             ] : null,
+            'images' => $images, // resolved chain result, for admin preview
         ];
     }
 }

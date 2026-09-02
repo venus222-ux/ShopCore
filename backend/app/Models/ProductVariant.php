@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\MediaLibrary\HasMedia;
+use Spatie\MediaLibrary\InteractsWithMedia;
 
-class ProductVariant extends Model  // Acesta gestionează variantele de produs (diferite culori, mărimi etc.) și logica de preț.
+class ProductVariant extends Model implements HasMedia  // Acesta gestionează variantele de produs (diferite culori, mărimi etc.) și logica de preț.
 {
-    use HasFactory;
+    use HasFactory, InteractsWithMedia;
 
     protected $fillable = [
         'product_id',
@@ -130,5 +132,29 @@ class ProductVariant extends Model  // Acesta gestionează variantele de produs 
         }
 
         return true;
+    }
+
+    /**
+     * Resolution order:
+     * 1. Own images (rare per-SKU override)
+     * 2. First attribute value (typically Color) that carries images —
+     *    this is the normal path, shared across every Size for that Color
+     * 3. Parent product's preview images
+     */
+    public function getEffectiveMediaAttribute()
+    {
+        $own = $this->getMedia('images');
+        if ($own->isNotEmpty()) {
+            return $own;
+        }
+
+        foreach ($this->attributeValues as $value) {
+            $valueMedia = $value->getMedia('images');
+            if ($valueMedia->isNotEmpty()) {
+                return $valueMedia;
+            }
+        }
+
+        return $this->product?->getMedia('previews') ?? collect();
     }
 }

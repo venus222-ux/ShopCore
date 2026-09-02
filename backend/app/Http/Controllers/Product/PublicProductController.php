@@ -15,12 +15,9 @@ class PublicProductController extends Controller
 
         $products = Product::with([
             'category',
-            // Same relations as show() - the ProductCard now needs the
-            // variant selector inline, so listing endpoints can no
-            // longer skip this (previously the empty-array fallback in
-            // ProductResource was relied on here to avoid N+1, but that
-            // just meant the card silently had no variants at all).
+            'media',
             'variants.attributeValues.attribute',
+            'variants.attributeValues.media',
             'variants.inventory',
         ])
             ->where('is_published', true)
@@ -42,7 +39,9 @@ class PublicProductController extends Controller
             'category',
             'media',
             'variants.attributeValues.attribute',
+            'variants.attributeValues.media',
             'variants.inventory',
+            'variants.media',
         ])
             ->where('slug', $slug)
             ->where('is_published', true)

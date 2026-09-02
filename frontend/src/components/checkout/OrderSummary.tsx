@@ -1,5 +1,6 @@
 import { Tag, ShieldCheck } from "lucide-react";
 import styles from "../../styles/Checkout.module.css";
+import { getProxiedImageUrl } from "../../utils/image";
 
 interface OrderSummaryProps {
   items: any[];
@@ -14,6 +15,25 @@ interface OrderSummaryProps {
   requiresShipping: boolean;
   codFee?: number;
 }
+
+// Same resolution as Cart.tsx: the selected variant's image (resolved on
+// the backend from its attribute values, e.g. "Black") takes priority,
+// falling back to the product's own preview image.
+const getSelectedVariant = (item: any) => {
+  if (!item.variants?.length || !item.variant_id) return null;
+  return item.variants.find((v: any) => v.id === item.variant_id) ?? null;
+};
+
+const getItemImage = (item: any) => {
+  const variant = getSelectedVariant(item);
+  const variantImage = variant?.images?.[0];
+
+  if (variantImage) return variantImage;
+
+  return Array.isArray(item.preview_urls)
+    ? item.preview_urls[0]
+    : item.preview_url || item.preview_urls;
+};
 
 export default function OrderSummary({
   items,
@@ -45,12 +65,24 @@ export default function OrderSummary({
 
           const originalUnitPrice = Number(item.price || 0);
 
+          const image = getItemImage(item);
+          const imageUrl = image ? getProxiedImageUrl(image) : "/placeholder.png";
+
           return (
             <div
               key={item.id}
               className={styles.miniItem}
             >
               <div className={styles.itemInfo}>
+                <img
+                  src={imageUrl}
+                  alt={item.title}
+                  className={styles.miniItemImg}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src = "/placeholder.png";
+                  }}
+                />
+
                 <div className={styles.qtyBadge}>
                   {item.quantity}
                 </div>

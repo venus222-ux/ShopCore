@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\ProductSearchResource;
+use App\Models\Category;
 use App\Services\ProductSearchService;
 use Illuminate\Http\Request;
 
@@ -31,11 +32,21 @@ class SearchController extends Controller
         $total = $results['hits']['total']['value'] ?? 0;
         $aggs = $results['aggregations'] ?? [];
 
+        // Resolve category_id -> name from the DB rather than from ES -
+        // avoids depending on category_name's exact ES mapping type
+        // (text/keyword/sub-field), which previously caused every
+        // category facet to show "Unknown" when that sub-aggregation
+        // didn't match the actual mapping.
+        $categoryBuckets = collect($aggs['categories']['buckets'] ?? []);
+
+        $categoryNames = Category::whereIn('id', $categoryBuckets->pluck('key'))
+            ->pluck('name', 'id');
+
         $facets = [
-            'categories' => collect($aggs['categories']['buckets'] ?? [])->map(function ($bucket) {
+            'categories' => $categoryBuckets->map(function ($bucket) use ($categoryNames) {
                 return [
                     'id' => $bucket['key'],
-                    'name' => $bucket['name']['buckets'][0]['key'] ?? 'Unknown',
+                    'name' => $categoryNames->get($bucket['key'], 'Unknown'),
                     'count' => $bucket['doc_count'],
                 ];
             })->values(),

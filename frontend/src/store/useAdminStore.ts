@@ -129,6 +129,18 @@ interface AdminState {
   ) => Promise<void>;
   deleteAttributeValue: (valueId: number) => Promise<void>;
 
+  // Product-scoped attribute-value images
+  uploadAttributeValueImagesForProduct: (
+    productId: number,
+    valueId: number,
+    files: File[],
+  ) => Promise<void>;
+  deleteAttributeValueImageForProduct: (
+    productId: number,
+    valueId: number,
+    mediaId: number,
+  ) => Promise<void>;
+
   fetchCategoryAttributes: (categoryId: number) => Promise<void>;
   syncCategoryAttributes: (
     categoryId: number,
@@ -615,6 +627,40 @@ export const useAdminStore = create<AdminState>((set, get) => ({
       toast.success("Value deleted");
     } catch {
       toast.error("Error deleting value");
+    }
+  },
+
+  // Product-scoped attribute-value images
+  uploadAttributeValueImagesForProduct: async (productId, valueId, files) => {
+    if (!files.length) return;
+    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append("images[]", file));
+
+      await API.post(
+        `/admin/products/${productId}/attribute-values/${valueId}/images`,
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      );
+
+      // Refresh variants so the new images show up grouped by color in
+      // VariantManager - the shape() endpoint resolves them fresh.
+      await get().fetchVariants(productId);
+      toast.success("Images uploaded");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Error uploading images");
+    }
+  },
+
+  deleteAttributeValueImageForProduct: async (productId, valueId, mediaId) => {
+    try {
+      await API.delete(
+        `/admin/products/${productId}/attribute-values/${valueId}/images/${mediaId}`,
+      );
+      await get().fetchVariants(productId);
+      toast.success("Image deleted");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Error deleting image");
     }
   },
 

@@ -22,7 +22,7 @@ class ProductSearchService
     public function index(Product $product)
     {
         try {
-            $product->loadMissing(['variants.attributeValues.attribute', 'variants.inventory']);
+            $product->loadMissing(['variants.attributeValues.attribute', 'variants.attributeValues.media', 'variants.inventory']);
 
             return $this->client->index([
                 'index' => config('services.elasticsearch.index'),
@@ -55,9 +55,10 @@ class ProductSearchService
                     'attributes' => $this->attributesPayload($product),
 
                     // Full variant objects, shaped identically to
-                    // ProductVariantResource's output, so ProductCard/
-                    // VariantSelector behave the same whether the product
-                    // came from the DB listing endpoint or an ES search hit.
+                    // ProductVariantResource's output (including product-scoped
+                    // images), so ProductCard/VariantSelector behave the same
+                    // whether the product came from the DB listing endpoint or
+                    // an ES search hit.
                     'variants' => $this->variantsPayload($product),
                 ],
             ]);
@@ -74,7 +75,6 @@ class ProductSearchService
         $must = [];
         $filter = [];
 
-        // 🔍 FUZZY SEARCH
         if ($query) {
             $must[] = [
                 'multi_match' => [
@@ -86,7 +86,6 @@ class ProductSearchService
             ];
         }
 
-        // 🎯 UNIVERSAL FILTERS
         if (! empty($filters['category'])) {
             $filter[] = [
                 'term' => ['category_id' => $filters['category']],
@@ -117,7 +116,6 @@ class ProductSearchService
             ];
         }
 
-        // ⭐ DYNAMIC ATTRIBUTE FILTERS
         if (! empty($filters['attributes']) && is_array($filters['attributes'])) {
             foreach ($filters['attributes'] as $slug => $value) {
                 if ($value === null || $value === '') {
@@ -140,7 +138,6 @@ class ProductSearchService
             }
         }
 
-        // ⭐ SORT OPTIONS
         $sortOptions = [
             'newest' => ['created_at' => ['order' => 'desc']],
             'price_asc' => ['price' => ['order' => 'asc']],
@@ -173,26 +170,26 @@ class ProductSearchService
                 'sort' => $sortClause,
 
                 'aggs' => [
-                    'categories' => [
-                        'terms' => [
-                            'field' => 'category_id',
-                            'size' => 10,
-                        ],
-                    ],
-                    'attributes' => [
-                        'nested' => ['path' => 'attributes'],
-                        'aggs' => [
-                            'by_attribute' => [
-                                'terms' => ['field' => 'attributes.attribute_slug', 'size' => 20],
-                                'aggs' => [
-                                    'values' => [
-                                        'terms' => ['field' => 'attributes.value.keyword', 'size' => 50],
-                                    ],
-                                ],
-                            ],
-                        ],
+    'categories' => [
+        'terms' => [
+            'field' => 'category_id',
+            'size' => 10,
+        ],
+    ],
+    'attributes' => [
+        'nested' => ['path' => 'attributes'],
+        'aggs' => [
+            'by_attribute' => [
+                'terms' => ['field' => 'attributes.attribute_slug', 'size' => 20],
+                'aggs' => [
+                    'values' => [
+                        'terms' => ['field' => 'attributes.value.keyword', 'size' => 50],
                     ],
                 ],
+            ],
+        ],
+    ],
+],
             ],
         ]);
     }
@@ -217,7 +214,7 @@ class ProductSearchService
         $params = ['body' => []];
 
         foreach ($products as $product) {
-            $product->loadMissing(['variants.attributeValues.attribute', 'variants.inventory']);
+            $product->loadMissing(['variants.attributeValues.attribute', 'variants.attributeValues.media', 'variants.inventory']);
 
             $params['body'][] = [
                 'index' => [
@@ -283,14 +280,24 @@ class ProductSearchService
 
     /**
      * Per-variant payload shaped identically to ProductVariantResource's
-     * output (id, sku, price=final_price, has_discount, is_default,
-     * attribute_values, in_stock), so the frontend's ProductCard/
-     * VariantSelector work the same regardless of whether variants came
-     * from the DB (Eloquent + Resource) or from this ES document.
+     * output, including images resolved from this variant's attribute
+     * values under a media collection SCOPED to this product - the same
+     * "Brown" AttributeValue row used by an unrelated product never
+     * leaks its photos into this document.
      */
     private function variantsPayload(Product $product): array
     {
-        return $product->variants->map(function ($variant) {
+        $collection = 'images-product-'.$product->id;
+
+        return $product->variants->map(function ($variant) use ($collection) {
+            $withImages = $variant->attributeValues->first(
+                fn ($av) => $av->getMedia($collection)->isNotEmpty()
+            );
+
+            $images = $withImages
+                ? $withImages->getMedia($collection)->map(fn ($m) => $m->getFullUrl())->values()->toArray()
+                : [];
+
             return [
                 'id' => $variant->id,
                 'sku' => $variant->sku,
@@ -308,6 +315,8 @@ class ProductSearchService
                 'in_stock' => $variant->inventory
                     ? ($variant->inventory->track_stock ? $variant->inventory->available > 0 : true)
                     : true,
+
+                'images' => $images,
             ];
         })->values()->toArray();
     }

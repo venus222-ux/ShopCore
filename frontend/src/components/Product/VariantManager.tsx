@@ -1,13 +1,21 @@
 // src/components/Product/VariantManager.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useAdminStore } from "../../store/useAdminStore";
-import { Plus, Trash2, Pencil, Check, X } from "lucide-react";
+import { Plus, Trash2, Pencil, Check, X, Image as ImageIcon, ChevronDown, ChevronRight } from "lucide-react";
 import styles from "../../styles/ProductForm.module.css";
 
 interface VariantManagerProps {
   productId: number;
   categoryId?: number;
   basePrice: number;
+}
+
+interface ColorGroup {
+  valueId: number;
+  valueLabel: string;
+  attributeName: string;
+  variants: any[];
+  images: any[];
 }
 
 export const VariantManager: React.FC<VariantManagerProps> = ({
@@ -23,6 +31,8 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
     updateVariant,
     deleteVariant,
     updateVariantInventory,
+    uploadAttributeValueImagesForProduct,
+    deleteAttributeValueImageForProduct,
   } = useAdminStore();
 
   useEffect(() => {
@@ -36,10 +46,18 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
   const [trackStock, setTrackStock] = useState(true);
   const [selectedValues, setSelectedValues] = useState<Record<number, number>>({});
 
-  // Inline edit state for an existing variant's own fields (sku/price)
   const [editingVariantId, setEditingVariantId] = useState<number | null>(null);
   const [editSku, setEditSku] = useState("");
   const [editPrice, setEditPrice] = useState<number | null>(null);
+
+  const imageInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
+  const [uploadingValueId, setUploadingValueId] = useState<number | null>(null);
+  const [deletingImage, setDeletingImage] = useState<string | null>(null);
+
+  // Collapsed groups (color sections start expanded; user can collapse)
+  const [collapsed, setCollapsed] = useState<Record<number, boolean>>({});
+
+  const variantList: any[] = variants as any[];
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,10 +80,6 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
     setPrice(basePrice);
   };
 
-  // Fixed: was calling updateVariant() (the general SKU/price/attributes
-  // endpoint), which doesn't accept quantity/track_stock at all - the
-  // request succeeded silently but never touched inventory. Stock changes
-  // must go through the dedicated inventory endpoint.
   const handleStockUpdate = async (variantId: number, qty: number, track: boolean) => {
     await updateVariantInventory(variantId, track, Number(qty));
     await fetchVariants(productId);
@@ -92,6 +106,190 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
     cancelEdit();
   };
 
+  const handleImagesSelected = async (valueId: number, fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
+    if (files.length === 0) return;
+
+    setUploadingValueId(valueId);
+    await uploadAttributeValueImagesForProduct(productId, valueId, files);
+    setUploadingValueId(null);
+  };
+
+  const handleDeleteImage = async (valueId: number, mediaId: number) => {
+    const key = valueId + "-" + mediaId;
+    setDeletingImage(key);
+    await deleteAttributeValueImageForProduct(productId, valueId, mediaId);
+    setDeletingImage(null);
+  };
+
+  /**
+   * Group every variant under its "primary visual attribute" value - in
+   * practice, whichever attribute the variant carries that already has
+   * (or is the natural place to attach) images, typically Color. Every
+   * variant sharing that value across all Sizes nests under one card, so
+   * uploading a photo once applies to the whole group -
+   * uploadAttributeValueImagesForProduct(productId, colorValueId, files)
+   * updates every variant in that group via the fetchVariants() refresh.
+   *
+   * Preference order for picking the grouping value on a given variant:
+   * 1. An attribute value that already carries images (so an existing
+   *    group stays intact even if attribute order changes).
+   * 2. Otherwise, an attribute value whose attribute name looks like a
+   *    "visual" one (color/colour/finish) - covers brand-new groups
+   *    before any image has been uploaded yet.
+   * 3. Otherwise, the first attribute value at all - guarantees every
+   *    variant lands in exactly one group.
+   */
+  const colorGroups = useMemo(() => {
+    const groups = new Map<number, ColorGroup>();
+    const ungrouped: any[] = [];
+
+    const visualNamePattern = /colou?r|finish|shade/i;
+
+    for (const v of variantList) {
+      const attrValues: any[] = v.attribute_values || [];
+
+      const withImages = attrValues.find((av: any) => av.images && av.images.length > 0);
+      const visualNamed = attrValues.find((av: any) => visualNamePattern.test(av.attribute_name || ""));
+      const groupingValue = withImages || visualNamed || attrValues[0];
+
+      if (!groupingValue) {
+        ungrouped.push(v);
+        continue;
+      }
+
+      let group = groups.get(groupingValue.value_id);
+
+      if (!group) {
+        group = {
+          valueId: groupingValue.value_id,
+          valueLabel: groupingValue.value,
+          attributeName: groupingValue.attribute_name,
+          variants: [],
+          images: groupingValue.images || [],
+        };
+        groups.set(groupingValue.value_id, group);
+      }
+
+      group.variants.push(v);
+
+      if (group.images.length === 0 && groupingValue.images && groupingValue.images.length > 0) {
+        group.images = groupingValue.images;
+      }
+    }
+
+    return { groups: Array.from(groups.values()), ungrouped };
+  }, [variantList]);
+
+  const toggleCollapsed = (valueId: number) => {
+    setCollapsed((prev) => ({ ...prev, [valueId]: !prev[valueId] }));
+  };
+
+  const renderVariantRow = (v: any) => {
+    const isEditing = editingVariantId === v.id;
+    // Show every attribute value except the one used for grouping (Color) -
+    // that's already the section header, no need to repeat it per row.
+    const nonGroupingAttrs: any[] = (v.attribute_values || []).slice(1);
+
+    return (
+      <div key={v.id} className={styles.sizeRow}>
+        <div className={styles.sizeRowMain}>
+          {isEditing ? (
+            <input
+              type="text"
+              value={editSku}
+              onChange={(e) => setEditSku(e.target.value)}
+              className={styles.sizeRowSkuInput}
+            />
+          ) : (
+            <span className={styles.sizeRowSku}>{v.sku}</span>
+          )}
+
+          <span className={styles.sizeRowProps}>
+            {nonGroupingAttrs.map((av: any) => av.attribute_name + ": " + av.value).join(" · ")}
+          </span>
+        </div>
+
+        <div className={styles.sizeRowStats}>
+          <div className={styles.sizeRowStat}>
+            <span className={styles.sizeRowStatLabel}>Price</span>
+            {isEditing ? (
+              <input
+                type="number"
+                step="0.01"
+                value={editPrice ?? ""}
+                onChange={(e) => setEditPrice(e.target.value ? Number(e.target.value) : null)}
+                className={styles.sizeRowSmallInput}
+              />
+            ) : (
+              <strong>${Number(v.price).toFixed(2)}</strong>
+            )}
+          </div>
+
+          <div className={styles.sizeRowStat}>
+            <span className={styles.sizeRowStatLabel}>Stock</span>
+            <input
+              type="number"
+              defaultValue={v.inventory?.quantity ?? 0}
+              onBlur={(e) =>
+                handleStockUpdate(v.id, Number(e.target.value), v.inventory?.track_stock ?? true)
+              }
+              className={styles.sizeRowSmallInput}
+            />
+          </div>
+
+          <div className={styles.sizeRowStat}>
+            <span className={styles.sizeRowStatLabel}>Track</span>
+            <input
+              type="checkbox"
+              defaultChecked={v.inventory?.track_stock ?? true}
+              onChange={(e) =>
+                handleStockUpdate(v.id, v.inventory?.quantity ?? 0, e.target.checked)
+              }
+            />
+          </div>
+
+          {(v.inventory?.reserved ?? 0) > 0 && (
+            <span className={styles.sizeRowReserved}>
+              ⚠️ {v.inventory.reserved} held
+            </span>
+          )}
+
+          <div className={styles.sizeRowActions}>
+            {isEditing ? (
+              <>
+                <button type="button" onClick={() => saveEdit(v.id)} title="Save" className={styles.iconBtnGreen}>
+                  <Check size={14} />
+                </button>
+                <button type="button" onClick={cancelEdit} title="Cancel" className={styles.iconBtnGray}>
+                  <X size={14} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button type="button" onClick={() => startEdit(v)} title="Edit SKU/Price" className={styles.iconBtnIndigo}>
+                  <Pencil size={14} />
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await deleteVariant(v.id);
+                    await fetchVariants(productId);
+                  }}
+                  title="Delete"
+                  className={styles.iconBtnRed}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div style={{ marginTop: "40px", borderTop: "2px solid #e5e7eb", paddingTop: "2px" }}>
       <h2 style={{ fontSize: "1.25rem", fontWeight: "bold", margin: "20px 0" }}>
@@ -115,7 +313,7 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
               type="text"
               value={sku}
               onChange={(e) => setSku(e.target.value)}
-              placeholder="E.g. TS-RED-XL"
+              placeholder="E.g. BELT-BLK-90"
               required
             />
           </div>
@@ -196,133 +394,107 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
         </button>
       </form>
 
-      <div style={{ marginTop: "24px" }}>
-        <h3 style={{ fontWeight: "600", marginBottom: "12px" }}>Active Options</h3>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            background: "white",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-          }}
-        >
-          <thead>
-            <tr style={{ background: "#f3f4f6", textAlign: "left", fontSize: "13px" }}>
-              <th style={{ padding: "12px" }}>SKU</th>
-              <th style={{ padding: "12px" }}>Properties</th>
-              <th style={{ padding: "12px" }}>Price</th>
-              <th style={{ padding: "12px" }}>Available Stock</th>
-              <th style={{ padding: "12px" }}>Reserved (Checkout Lock)</th>
-              <th style={{ padding: "12px" }}>Track Settings</th>
-              <th style={{ padding: "12px", textAlign: "right" }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {variants.map((v: any) => {
-              const isEditing = editingVariantId === v.id;
+      <div style={{ marginTop: "28px" }}>
+        <h3 style={{ fontWeight: "600", marginBottom: "6px" }}>Active Options</h3>
+        <p style={{ fontSize: "12px", color: "#6b7280", marginTop: 0, marginBottom: "16px" }}>
+          Upload once per color — every size in that group shows the same
+          photos automatically. Scoped to this product only.
+        </p>
 
-              return (
-                <tr key={v.id} style={{ borderBottom: "1px solid #e5e7eb", fontSize: "14px" }}>
-                  <td style={{ padding: "12px", fontWeight: "500" }}>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        value={editSku}
-                        onChange={(e) => setEditSku(e.target.value)}
-                        style={{ width: "120px", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
-                      />
-                    ) : (
-                      v.sku
+        <div className={styles.colorGroupList}>
+          {colorGroups.groups.map((group) => {
+            const isUploading = uploadingValueId === group.valueId;
+            const isCollapsed = !!collapsed[group.valueId];
+
+            return (
+              <div key={group.valueId} className={styles.colorGroupCard}>
+                <div className={styles.colorGroupHeader}>
+                  <button
+                    type="button"
+                    className={styles.colorGroupToggle}
+                    onClick={() => toggleCollapsed(group.valueId)}
+                  >
+                    {isCollapsed ? <ChevronRight size={16} /> : <ChevronDown size={16} />}
+                    <strong>
+                      {group.attributeName}: {group.valueLabel}
+                    </strong>
+                    <span className={styles.colorGroupCount}>
+                      {group.variants.length} size{group.variants.length === 1 ? "" : "s"}
+                    </span>
+                  </button>
+                </div>
+
+                <div className={styles.colorGroupImagesRow}>
+                  <div className={styles.colorGroupThumbs}>
+                    {group.images.length === 0 && (
+                      <span className={styles.variantCardMuted}>No image yet</span>
                     )}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {v.attribute_values.map((av: any) => (
-                      <span
-                        key={av.value_id}
-                        style={{
-                          background: "#e0e7ff",
-                          color: "#4338ca",
-                          padding: "2px 6px",
-                          borderRadius: "4px",
-                          fontSize: "12px",
-                          marginRight: "4px",
-                        }}
-                      >
-                        {av.attribute_name}: {av.value}
-                      </span>
-                    ))}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={editPrice ?? ""}
-                        onChange={(e) => setEditPrice(e.target.value ? Number(e.target.value) : null)}
-                        style={{ width: "80px", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
-                      />
-                    ) : (
-                      `$${Number(v.price).toFixed(2)}`
-                    )}
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <input
-                      type="number"
-                      defaultValue={v.inventory?.quantity ?? 0}
-                      onBlur={(e) =>
-                        handleStockUpdate(v.id, Number(e.target.value), v.inventory?.track_stock ?? true)
-                      }
-                      style={{ width: "70px", padding: "4px", borderRadius: "4px", border: "1px solid #ccc" }}
-                    />
-                  </td>
-                  <td style={{ padding: "12px", color: "#b45309" }}>
-                    ⚠️ {v.inventory?.reserved ?? 0} items held
-                  </td>
-                  <td style={{ padding: "12px" }}>
-                    <input
-                      type="checkbox"
-                      defaultChecked={v.inventory?.track_stock ?? true}
-                      onChange={(e) =>
-                        handleStockUpdate(v.id, v.inventory?.quantity ?? 0, e.target.checked)
-                      }
-                    />
-                  </td>
-                  <td style={{ padding: "12px", textAlign: "right" }}>
-                    <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                      {isEditing ? (
-                        <>
-                          <button type="button" onClick={() => saveEdit(v.id)} style={{ color: "#16a34a" }} title="Save">
-                            <Check size={16} />
-                          </button>
-                          <button type="button" onClick={cancelEdit} style={{ color: "#6b7280" }} title="Cancel">
-                            <X size={16} />
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          <button type="button" onClick={() => startEdit(v)} style={{ color: "#4f46e5" }} title="Edit SKU/Price">
-                            <Pencil size={16} />
-                          </button>
+                    {group.images.map((img: any) => {
+                      const key = group.valueId + "-" + img.id;
+                      return (
+                        <div key={img.id} className={styles.variantImageThumb}>
+                          <img src={img.url} alt={group.valueLabel} />
                           <button
                             type="button"
-                            onClick={async () => {
-                              await deleteVariant(v.id);
-                              await fetchVariants(productId);
-                            }}
-                            style={{ color: "#ef4444" }}
-                            title="Delete"
+                            onClick={() => handleDeleteImage(group.valueId, img.id)}
+                            disabled={deletingImage === key}
+                            className={styles.variantImageDelete}
                           >
-                            <Trash2 size={16} />
+                            ×
                           </button>
-                        </>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => imageInputRefs.current[group.valueId]?.click()}
+                    disabled={isUploading}
+                    className={styles.colorGroupUploadBtn}
+                  >
+                    <ImageIcon size={13} />
+                    {isUploading ? "Uploading..." : "Upload images"}
+                  </button>
+                  <input
+                    ref={(el) => (imageInputRefs.current[group.valueId] = el)}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: "none" }}
+                    onChange={(e) => {
+                      handleImagesSelected(group.valueId, e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                </div>
+
+                {!isCollapsed && (
+                  <div className={styles.sizeRowList}>
+                    {group.variants.map((v) => renderVariantRow(v))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {colorGroups.ungrouped.length > 0 && (
+            <div className={styles.colorGroupCard}>
+              <div className={styles.colorGroupHeader}>
+                <strong>Ungrouped</strong>
+              </div>
+              <div className={styles.sizeRowList}>
+                {colorGroups.ungrouped.map((v) => renderVariantRow(v))}
+              </div>
+            </div>
+          )}
+
+          {colorGroups.groups.length === 0 && colorGroups.ungrouped.length === 0 && (
+            <p style={{ fontSize: "13px", color: "#9ca3af" }}>
+              No variants yet — add one using the form above.
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

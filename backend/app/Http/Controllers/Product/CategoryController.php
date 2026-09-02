@@ -11,9 +11,16 @@ use Illuminate\Http\Request;
 class CategoryController extends Controller
 {
     // GET /api/categories
+    // Only returns categories that currently have at least one published
+    // product - keeps the navbar/rail from showing empty categories that
+    // lead to a dead-end "no products" page.
     public function index()
     {
-        $categories = Category::all();
+        $categories = Category::withCount([
+            'products' => fn ($q) => $q->where('is_published', true),
+        ])
+            ->having('products_count', '>', 0)
+            ->get();
 
         return response()->json([
             'data' => $categories,
@@ -25,7 +32,6 @@ class CategoryController extends Controller
     {
         $perPage = (int) $request->input('per_page', 12);
 
-        // 2️⃣ Fetch published products for this category with pagination
         $products = Product::with('category')
             ->where('category_id', $category->id)
             ->where('is_published', true)

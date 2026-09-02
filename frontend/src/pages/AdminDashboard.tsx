@@ -87,7 +87,7 @@ const AdminDashboard: React.FC = () => {
     deleteUser,
     refundRequests,
     fetchRefundRequests,
-    currentAdmin, // optional: { name, role } — falls back gracefully below
+    //currentAdmin, // optional: { name, role } — falls back gracefully below
   } = useAdminStore();
 
   const [activeTab, setActiveTab] = useState<TabType>("products");
@@ -111,8 +111,8 @@ const AdminDashboard: React.FC = () => {
     }
   }, [activeTab, searchTerm]);
 
-  const adminName = currentAdmin?.name || "Admin";
-  const adminRole = currentAdmin?.role || "Administrator";
+const adminName = "Admin";
+const adminRole = "Administrator";
   const copy = TAB_COPY[activeTab];
 
   return (

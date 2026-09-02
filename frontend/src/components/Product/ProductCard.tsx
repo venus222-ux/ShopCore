@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ShoppingCart, Star, Box, Zap } from "lucide-react";
+import { ShoppingCart, Star, Box, Zap, ChevronDown } from "lucide-react";
 import styles from "../../styles/ProductCard.module.css";
 import { Product, ProductVariant } from "../../types";
 import WishlistButton from "./WishlistButton";
-import VariantSelector from "./VariantSelector";
 import { useCartStore } from "../../store/useCartStore";
 import { toast } from "react-toastify";
 import { getProxiedImageUrl } from "../../utils/image";
@@ -13,10 +12,34 @@ interface ProductCardProps {
   product: Product;
 }
 
+// Falls back to the placeholder exactly once per image, tracked in React
+// state rather than mutating e.target.src directly - avoids the
+// fail→reassign→fail loop if the placeholder itself briefly 404s.
+const CardImage = ({ src, alt }: { src: string; alt: string }) => {
+  const [errored, setErrored] = useState(false);
+
+  return (
+    <img
+      src={errored ? "/placeholder.png" : src}
+      alt={alt}
+      loading="lazy"
+      className={styles.imageHover}
+      onError={() => {
+        if (!errored) setErrored(true);
+      }}
+    />
+  );
+};
+
+const variantLabel = (variant: ProductVariant) => {
+  const values = (variant.attribute_values as any[]) || [];
+  return values.map((av) => av.value).join(" / ") || variant.sku;
+};
+
 const ProductCard = ({ product }: ProductCardProps) => {
   const addToCart = useCartStore((s) => s.addToCart);
 
-  const previewUrl =
+  const productPreviewUrl =
     product?.preview_urls?.[0] ||
     product?.preview_url ||
     product?.preview_image ||
@@ -31,44 +54,83 @@ const ProductCard = ({ product }: ProductCardProps) => {
     ? Math.round((savings / originalPrice) * 100)
     : 0;
 
-  const variantCount = product.variants?.length || 0;
-  const hasMultipleVariants = variantCount > 1;
+  const variantList = product.variants ?? [];
+  const hasMultipleVariants = variantList.length > 1;
   const isDigital = product.asset_type === "digital";
   const isNew = product.is_new;
 
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+  const [hoveredVariant, setHoveredVariant] = useState<ProductVariant | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  // Close the panel on outside click.
+  useEffect(() => {
+    if (!panelOpen) return;
+
+    const handleClick = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setPanelOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [panelOpen]);
 
   useEffect(() => {
-    setSelectedVariant(null);
+    setPanelOpen(false);
+    setHoveredVariant(null);
   }, [product.id]);
 
-  const canAddToCart =
-    !hasMultipleVariants ||
-    (selectedVariant !== null && selectedVariant.in_stock !== false);
+  // Whichever variant the shopper is currently hovering in the panel takes
+  // the image slot - lets them preview Black vs Brown before committing.
+  // Falls back to the product's own preview image when nothing's hovered.
+  const previewUrl = hoveredVariant?.images?.[0] || productPreviewUrl;
 
-  const addToCartLabel =
-    hasMultipleVariants && !selectedVariant ? "Select" : "Add to Cart";
+  const handleTogglePanel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setPanelOpen((v) => !v);
+  };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handlePickVariant = (e: React.MouseEvent, variant: ProductVariant) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (hasMultipleVariants && !selectedVariant) {
-      toast.warning("Please select your options first");
+    if (variant.in_stock === false) {
+      toast.error("That option is out of stock");
       return;
     }
 
-    if (hasMultipleVariants && selectedVariant?.in_stock === false) {
-      toast.error("That combination is out of stock");
+    addToCart(product, variant.id);
+    toast.success("Added to cart 🛒");
+    setPanelOpen(false);
+    setHoveredVariant(null);
+  };
+
+  const handleSingleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const only = variantList[0];
+    if (only && only.in_stock === false) {
+      toast.error("Out of stock");
       return;
     }
 
-    addToCart(product, selectedVariant?.id ?? product.variants?.[0]?.id);
+    addToCart(product, only?.id);
     toast.success("Added to cart 🛒");
   };
 
   return (
-    <div className={styles.card}>
+    <div
+      className={styles.card}
+      ref={cardRef}
+      onMouseLeave={() => {
+        if (!panelOpen) setHoveredVariant(null);
+      }}
+    >
       {/* MEDIA CONTAINER */}
       <div className={styles.mediaContainer}>
         <div className={styles.badgesTopLeft}>
@@ -86,19 +148,25 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
         <Link to={`/products/${product.slug}`} className={styles.imageLink}>
           {previewUrl ? (
-            <img
-              src={getProxiedImageUrl(previewUrl)}
-              alt={product.title}
-              loading="lazy"
-              className={styles.imageHover}
-              onError={(e) => {
-                (e.target as HTMLImageElement).src = "/placeholder.png";
-              }}
-            />
+            <CardImage src={getProxiedImageUrl(previewUrl)} alt={product.title} />
           ) : (
             <div className={styles.noPreview}>No Preview Available</div>
           )}
         </Link>
+
+        {/* Hover overlay quick-select prompt - only for multi-variant
+            products, only relevant on pointer devices (CSS hides it on
+            touch via the mediaContainer:hover rule using @media hover). */}
+        {hasMultipleVariants && (
+          <button
+            type="button"
+            className={styles.quickSelectOverlay}
+            onClick={handleTogglePanel}
+            onMouseEnter={() => setHoveredVariant(null)}
+          >
+            Select Options
+          </button>
+        )}
       </div>
 
       {/* CONTENT BODY */}
@@ -133,18 +201,6 @@ const ProductCard = ({ product }: ProductCardProps) => {
             "Premium quality fashion item crafted for modern lifestyles."}
         </p>
 
-        {hasMultipleVariants && (
-          <div
-            className={styles.variantSelectorWrapper}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <VariantSelector
-              variants={product.variants ?? []}
-              onChange={setSelectedVariant}
-            />
-          </div>
-        )}
-
         {/* PRICE SECTION */}
         <div className={styles.priceSection}>
           <span className={styles.finalPrice}>${finalPrice.toFixed(2)}</span>
@@ -163,15 +219,74 @@ const ProductCard = ({ product }: ProductCardProps) => {
         </div>
 
         {/* ACTIONS */}
-        <div className={styles.footerActions}>
-          <button
-            onClick={handleAddToCart}
-            disabled={!canAddToCart}
-            className={styles.btnAddToCart}
-          >
-            <ShoppingCart size={15} />
-            {addToCartLabel}
-          </button>
+        <div className={styles.footerActions} style={{ position: "relative" }}>
+          {hasMultipleVariants ? (
+            <>
+              <button
+                onClick={handleTogglePanel}
+                className={styles.btnAddToCart}
+                aria-expanded={panelOpen}
+              >
+                <ShoppingCart size={15} />
+                Select Options
+                <ChevronDown
+                  size={14}
+                  style={{
+                    transition: "transform 0.2s",
+                    transform: panelOpen ? "rotate(180deg)" : "none",
+                  }}
+                />
+              </button>
+
+              {panelOpen && (
+                <div className={styles.variantPanel}>
+                  {variantList.map((variant) => {
+                    const thumb = variant.images?.[0];
+                    const outOfStock = variant.in_stock === false;
+
+                    return (
+                      <button
+                        key={variant.id}
+                        type="button"
+                        className={styles.variantRow}
+                        disabled={outOfStock}
+                        onMouseEnter={() => setHoveredVariant(variant)}
+                        onClick={(e) => handlePickVariant(e, variant)}
+                      >
+                        {thumb ? (
+                          <img
+                            src={getProxiedImageUrl(thumb)}
+                            alt={variantLabel(variant)}
+                            className={styles.variantRowThumb}
+                          />
+                        ) : (
+                          <span className={styles.variantRowThumbPlaceholder} />
+                        )}
+
+                        <span className={styles.variantRowLabel}>
+                          {variantLabel(variant)}
+                        </span>
+
+                        <span className={styles.variantRowPrice}>
+                          ${Number(variant.price ?? finalPrice).toFixed(2)}
+                        </span>
+
+                        {outOfStock && (
+                          <span className={styles.variantRowOos}>Out of stock</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <button onClick={handleSingleAddToCart} className={styles.btnAddToCart}>
+              <ShoppingCart size={15} />
+              Add to Cart
+            </button>
+          )}
+
           <Link
             to={`/products/${product.slug}`}
             className={styles.btnViewDetails}

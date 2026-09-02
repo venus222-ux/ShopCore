@@ -26,10 +26,11 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
+  type LucideIcon,
 } from "lucide-react";
 
+import API from "../api";
 import styles from "../styles/Home.module.css";
-import HorizontalScrollSection from "../components/Product/HorizontalScrollSection";
 import ProductCard from "../components/Product/ProductCard";
 
 interface Category {
@@ -39,13 +40,7 @@ interface Category {
   icon?: string;
 }
 
-const ICONS: Record<
-  string,
-  React.ComponentType<{
-    size?: number;
-    strokeWidth?: number;
-  }>
-> = {
+const ICONS: Record<string, LucideIcon> = {
   shirt: Shirt,
   footprints: Footprints,
   smartphone: Smartphone,
@@ -133,16 +128,11 @@ const CategoryRail = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/categories")
+    // Backend now only returns categories that have at least one
+    // published product, so no client-side filtering needed here.
+    API.get("/categories")
       .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error: ${res.status}`);
-        }
-
-        return res.json();
-      })
-      .then((data) => {
-        setCategories(data.data || data || []);
+        setCategories(res.data.data || res.data || []);
       })
       .catch((err) => {
         console.error("Failed to load categories", err);
@@ -155,6 +145,8 @@ const CategoryRail = () => {
   if (loading) {
     return <div className={styles.railSkeleton} />;
   }
+
+  if (categories.length === 0) return null;
 
   return (
     <section className={styles.categoryRail} id="collections">
@@ -192,18 +184,18 @@ const PromoTiles = () => (
 
       <h3>Fresh styles for every moment.</h3>
 
-      <Link to="/category/women">
-        Shop Women <ChevronRight size={15} />
+      <Link to="/shop">
+        Shop Now <ChevronRight size={15} />
       </Link>
     </div>
 
     <div className={`${styles.promoTile} ${styles.promoMen}`}>
-      <span className={styles.sectionLabel}>Men’s Essentials</span>
+      <span className={styles.sectionLabel}>Essentials</span>
 
-      <h3>Timeless looks for every man.</h3>
+      <h3>Timeless looks, made to last.</h3>
 
-      <Link to="/category/men">
-        Shop Men <ChevronRight size={15} />
+      <Link to="/shop">
+        Shop Now <ChevronRight size={15} />
       </Link>
     </div>
 
@@ -222,29 +214,24 @@ const PromoTiles = () => (
 );
 
 /* ------------------------------------------------------------------ */
-/*  BEST SELLERS GRID                                                 */
+/*  PRODUCT GRID (shared by New Arrivals / Best Sellers)              */
 /* ------------------------------------------------------------------ */
 
-const BestSellersGrid = () => {
+interface ProductGridProps {
+  page: number;
+  perPage?: number;
+}
+
+const ProductGrid = ({ page, perPage = 8 }: ProductGridProps) => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/products?sort=popular&limit=8")
+    setLoading(true);
+
+    API.get("/products", { params: { page, per_page: perPage } })
       .then((res) => {
-        if (!res.ok) {
-          throw new Error(`HTTP error: ${res.status}`);
-        }
-
-        return res.json();
-      })
-      .then((data) => {
-        // Handle both:
-        // { data: [...] }
-        // { products: [...] }
-        // [...]
-        const list = data.data || data.products || data || [];
-
+        const list = res.data.data || res.data.products || res.data || [];
         setProducts(Array.isArray(list) ? list : []);
       })
       .catch((err) => {
@@ -254,7 +241,7 @@ const BestSellersGrid = () => {
       .finally(() => {
         setLoading(false);
       });
-  }, []);
+  }, [page, perPage]);
 
   if (loading) {
     return (
@@ -277,10 +264,7 @@ const BestSellersGrid = () => {
   return (
     <div className={styles.productsGrid}>
       {products.map((product) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-        />
+        <ProductCard key={product.id} product={product} />
       ))}
     </div>
   );
@@ -485,18 +469,6 @@ const Footer = () => (
           </li>
 
           <li>
-            <Link to="/category/women">Women</Link>
-          </li>
-
-          <li>
-            <Link to="/category/men">Men</Link>
-          </li>
-
-          <li>
-            <Link to="/category/kids">Kids</Link>
-          </li>
-
-          <li>
             <Link to="/shop?sale=1">Sale</Link>
           </li>
         </ul>
@@ -603,13 +575,34 @@ export default function Home() {
 
       <PromoTiles />
 
-      {/* ==================== BEST SELLERS ==================== */}
+      {/* ==================== NEW ARRIVALS ==================== */}
       <section className={styles.productsSection}>
         <div className={styles.sectionHeading}>
           <div>
-            <span className={styles.sectionLabel}>
-              Popular
-            </span>
+            <span className={styles.sectionLabel}>Just In</span>
+
+            <h2>New Arrivals</h2>
+          </div>
+
+          <Link to="/shop">
+            View All Products →
+          </Link>
+        </div>
+
+        <ProductGrid page={1} perPage={8} />
+      </section>
+
+      {/* ==================== BEST SELLERS ====================
+          NOTE: there is currently no sales-count / order-frequency field
+          in the product schema, so a true popularity ranking isn't
+          possible yet. This shows a second page of the same published
+          listing (real products, not fabricated data) as a stand-in.
+          Swap the query here once a real metric exists (e.g. an
+          order_items count column or a scheduled aggregate job). */}
+      <section className={styles.productsSection}>
+        <div className={styles.sectionHeading}>
+          <div>
+            <span className={styles.sectionLabel}>Popular</span>
 
             <h2>Best Sellers</h2>
           </div>
@@ -619,7 +612,7 @@ export default function Home() {
           </Link>
         </div>
 
-        <BestSellersGrid />
+        <ProductGrid page={2} perPage={8} />
       </section>
 
       <TrustBar />

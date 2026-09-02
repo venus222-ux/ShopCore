@@ -13,9 +13,9 @@ class DatabaseSeeder extends Seeder
             AdminSeeder::class,
             UserSeeder::class,
 
-            AttributeSeeder::class,      // ← important
+            //AttributeSeeder::class,      // ← important
             CategorySeeder::class,       // ← important
-            ProductSeeder::class,        // 1000 products
+            //ProductSeeder::class,        // 1000 products
 
             SettingSeeder::class,
         ]);
