@@ -77,8 +77,8 @@
   border: none;
   font-size: 1rem;
   font-weight: 700;
-  color: #fff;
-  background: linear-gradient(135deg, var(--accent), var(--accent-coral));
+  color: #ffffff;
+  background: #0022bb;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 0.4rem;

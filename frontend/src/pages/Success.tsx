@@ -14,6 +14,7 @@ const Success = () => {
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading",
   );
+
   const [order, setOrder] = useState<any>(null);
 
   const clearCart = useCartStore((state) => state.clearCart);
@@ -24,11 +25,16 @@ const Success = () => {
         responseType: "blob",
       });
 
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const url = window.URL.createObjectURL(res.data);
+
       const link = document.createElement("a");
       link.href = url;
       link.download = fileName || `product-${id}.zip`;
+
+      document.body.appendChild(link);
       link.click();
+      link.remove();
+
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error("Download failed", err);
@@ -47,17 +53,23 @@ const Success = () => {
 
     API.get(`/orders/verify?session_id=${sessionId}`)
       .then((res) => {
-        setOrder(res.data.order);
+        const verifiedOrder = res.data.order;
+
+        setOrder(verifiedOrder);
         setStatus("success");
+
         clearCart();
 
-        // 1. Auto-download doar pentru primul produs digital
-        const firstDigital = res.data.order?.items?.find(
-          (item: any) => item.asset_type === "digital"
+        // Auto-download primul produs digital
+        const firstDigital = verifiedOrder?.items?.find(
+          (item: any) => item.product?.asset_type === "digital",
         );
 
         if (firstDigital) {
-          downloadProduct(firstDigital.product_id, firstDigital.name);
+          downloadProduct(
+            firstDigital.product_id,
+            firstDigital.product?.title,
+          );
         }
       })
       .catch((err) => {
@@ -65,6 +77,7 @@ const Success = () => {
           setTimeout(() => window.location.reload(), 2500);
           return;
         }
+
         setStatus("error");
       });
   }, [clearCart]);
@@ -76,7 +89,11 @@ const Success = () => {
         {status === "loading" && (
           <div className={styles.state}>
             <Loader2 className={styles.spinner} size={46} />
-            <h2 className={styles.title}>Verifying payment</h2>
+
+            <h2 className={styles.title}>
+              Verifying payment
+            </h2>
+
             <p className={styles.subtitle}>
               Confirming your transaction securely...
             </p>
@@ -90,27 +107,40 @@ const Success = () => {
               <CheckCircle size={70} />
             </div>
 
-            <h1 className={styles.title}>Payment successful</h1>
+            <h1 className={styles.title}>
+              Payment successful
+            </h1>
 
-            {/* 3. Mesaj dinamic în funcție de tipul de produs */}
             <p className={styles.subtitle}>
-              {order?.items?.some((i: any) => i.asset_type === "digital")
+              {order?.items?.some(
+                (item: any) =>
+                  item.product?.asset_type === "digital",
+              )
                 ? "Your order is confirmed and your digital files are ready to download."
                 : "Your order is confirmed. We'll start preparing your shipment shortly."}
             </p>
 
             <div className={styles.orderBox}>
-              <div className={styles.orderId}>Order #{order?.id}</div>
+              <div className={styles.orderId}>
+                Order #{order?.id}
+              </div>
 
               {order?.items?.map((item: any) => (
-                <div key={item.product_id} className={styles.itemRow}>
-                  <span>{item.name || "Digital Product"}</span>
+                <div
+                  key={item.product_id}
+                  className={styles.itemRow}
+                >
+                  <span>
+                    {item.product?.title || "Digital Product"}
+                  </span>
 
-                  {/* 2. Buton Download doar pentru produse digitale */}
-                  {item.asset_type === "digital" && (
+                  {item.product?.asset_type === "digital" && (
                     <button
                       onClick={() =>
-                        downloadProduct(item.product_id, item.name)
+                        downloadProduct(
+                          item.product_id,
+                          item.product?.title,
+                        )
                       }
                       className={styles.downloadBtn}
                     >
@@ -131,13 +161,18 @@ const Success = () => {
         {/* ERROR */}
         {status === "error" && (
           <div className={styles.state}>
-            <AlertCircle className={styles.errorIcon} size={64} />
+            <AlertCircle
+              className={styles.errorIcon}
+              size={64}
+            />
 
-            <h1 className={styles.title}>Payment verification failed</h1>
+            <h1 className={styles.title}>
+              Payment verification failed
+            </h1>
 
             <p className={styles.subtitle}>
-              We couldn’t verify your session. If you were charged, check your
-              email or contact support.
+              We couldn’t verify your session. If you were charged,
+              check your email or contact support.
             </p>
 
             <a href="/" className={styles.secondaryBtn}>

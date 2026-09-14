@@ -10,3 +10,7 @@ Artisan::command('inspire', function () {
 
 Schedule::command('orders:release-stale-reservations --hours=24')->everySixHours();
 Schedule::command('orders:release-stale-cash --days=14')->everySixHours();
+
+Schedule::command('products:reindex')
+    ->dailyAt('03:00')
+    ->withoutOverlapping();

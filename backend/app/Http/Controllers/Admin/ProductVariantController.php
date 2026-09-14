@@ -18,38 +18,53 @@ class ProductVariantController extends Controller
             ->map(fn ($v) => $this->shape($v, $product->id));
     }
 
-    public function store(Request $request, Product $product)
-    {
-        $data = $request->validate([
-            'sku' => 'nullable|string|max:100|unique:product_variants,sku',
-            'price' => 'nullable|numeric|min:0',
-            'discount_percentage' => 'nullable|numeric|min:0|max:100',
-            'is_default' => 'boolean|nullable',
-            'attribute_value_ids' => 'array',
-            'attribute_value_ids.*' => 'integer|exists:attribute_values,id',
-            'track_stock' => 'boolean|nullable',
-            'quantity' => 'integer|min:0|nullable',
-        ]);
+    public function store(StoreProductRequest $request, ProductMediaService $mediaService)
+{
+    $data = $request->validated();
 
-        $variant = $product->variants()->create([
-            'sku' => $data['sku'] ?: $this->generateSku($product),
-            'price' => $data['price'] ?? null,
-            'discount_percentage' => $data['discount_percentage'] ?? null,
-            'is_default' => $data['is_default'] ?? false,
-        ]);
+    $data['slug'] = Str::slug($data['title']).'-'.uniqid();
+    $data['user_id'] = auth()->id();
 
-        $variant->attributeValues()->sync($data['attribute_value_ids'] ?? []);
+    $data['discount_percentage'] = $data['discount_percentage'] ?? 0;
+    $data['discount_fixed'] = $data['discount_fixed'] ?? null;
 
-        $variant->inventory()->create([
-            'track_stock' => $data['track_stock'] ?? true,
-            'quantity' => $data['quantity'] ?? 0,
-            'reserved' => 0,
-        ]);
+    $product = Product::create($data);
 
-        $variant->load(['attributeValues.attribute', 'attributeValues.media', 'inventory']);
+    // Orice produs trebuie să aibă cel puțin o variantă cumpărabilă
+    // (vezi CartResolver). Produsele "simple", fără atribute, primesc
+    // automat o variantă default care preia prețul de la produsul părinte.
+    $variant = $product->variants()->create([
+        'sku' => $this->generateSku($product),
+        'price' => null, // fallback pe Product::price
+        'is_default' => true,
+    ]);
 
-        return response()->json($this->shape($variant, $product->id), 201);
+    $variant->inventory()->create([
+        'track_stock' => true,
+        'quantity' => 0,
+        'reserved' => 0,
+    ]);
+
+    $mediaService->syncPreviewImages($product);
+
+    if ($data['asset_type'] === 'digital' && $request->hasFile('asset_file')) {
+        $product->addMedia($request->file('asset_file'))->toMediaCollection('asset');
     }
+
+    $product->load(['category', 'media']);
+
+    return response()->json([
+        'message' => 'Product created',
+        'data' => new ProductResource($product),
+    ], 201);
+}
+
+private function generateSku(Product $product): string
+{
+    $base = $product->slug ?: (string) $product->id;
+
+    return 'SKU-'.strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)).'-'.Str::upper(Str::random(4));
+}
 
     public function update(Request $request, ProductVariant $variant)
     {
@@ -79,17 +94,27 @@ class ProductVariantController extends Controller
     }
 
     public function destroy(ProductVariant $variant)
-    {
-        if ($variant->is_default && $variant->product->variants()->count() === 1) {
-            return response()->json([
-                'message' => 'Cannot delete the only variant of a product - every product needs at least one purchasable variant.',
-            ], 422);
-        }
+{
+    $siblingsCount = $variant->product->variants()->count();
 
-        $variant->delete();
-
-        return response()->json(['message' => 'Variant deleted']);
+    if ($siblingsCount === 1) {
+        return response()->json([
+            'message' => 'Cannot delete the only variant of a product - every product needs at least one purchasable variant.',
+        ], 422);
     }
+
+    $wasDefault = $variant->is_default;
+
+    $variant->delete();
+
+    if ($wasDefault) {
+        // Promovează o altă variantă rămasă la default, ca produsul
+        // să rămână cumpărabil.
+        $variant->product->variants()->first()?->update(['is_default' => true]);
+    }
+
+    return response()->json(['message' => 'Variant deleted']);
+}
 
     public function updateInventory(Request $request, ProductVariant $variant)
     {

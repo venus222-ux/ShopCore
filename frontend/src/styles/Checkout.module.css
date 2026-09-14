@@ -324,13 +324,8 @@
   border: 1px solid transparent;
   border-radius: 16px;
 
-  background: linear-gradient(
-    135deg,
-    var(--text) 0%,
-    #292521 100%
-  );
-
-  color: #fff;
+ color: #ffffff;
+  background: #0022bb;
 
   font-size: 0.95rem;
   font-weight: 700;
@@ -702,15 +697,15 @@
 }
 
 .primaryBtn {
-  color: #fff;
-
-  background: var(--text);
+ color: #ffffff;
+  background: #0022bb;
 
   border: 1px solid var(--text);
 }
 
 .primaryBtn:hover {
-  background: var(--accent);
+ color: #ffffff;
+  background: #0022bb;
   border-color: var(--accent);
 
   transform: translateY(-2px);
@@ -720,9 +715,8 @@
 }
 
 .secondaryBtn {
-  color: var(--text);
-
-  background: rgba(255, 255, 255, 0.75);
+ color: #ffffff;
+  background: #0022bb;
 
   border: 1px solid var(--border);
 }
@@ -744,8 +738,8 @@
 }
 
 .returnShopBtn {
-  background: var(--text);
-  color: #fff;
+ color: #ffffff;
+  background: #0022bb;
 
   border: none;
 
@@ -1075,7 +1069,7 @@
 
   padding: 1.25rem;
 
-  background: var(--surface);
+  background: #e9e8e8;
 
   border: 1px solid var(--border);
   border-radius: 18px;
@@ -1170,8 +1164,8 @@
   border: 1px solid var(--text);
   border-radius: 12px;
 
-  background: var(--text);
-  color: #fff;
+ color: #ffffff;
+  background: #0022bb;
 
   font-family: inherit;
   font-size: 0.82rem;

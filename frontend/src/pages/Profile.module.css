@@ -278,15 +278,10 @@ form {
   padding: 0.9rem 1.2rem;
 
   margin-top: 0.35rem;
+  margin-bottom: 2rem;
 
-  background:
-    linear-gradient(
-      135deg,
-      var(--accent),
-      var(--accent-coral)
-    );
-
-  color: #fff;
+  color: #ffffff;
+  background: #0022bb;
 
   border: none;
   border-radius: 999px;

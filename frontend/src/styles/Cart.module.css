@@ -250,8 +250,8 @@
   gap: 0.5rem;
   padding: 1rem 1.5rem;
   border-radius: 999px;
-  background: var(--text);
-  color: #fff;
+  color: #ffffff;
+  background: #0022bb;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.25s ease;

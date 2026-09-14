@@ -48,10 +48,6 @@ class OrderController extends Controller
 
         $existing = $order->getFirstMedia('invoices');
 
-        // Cached PDF is only valid if it was generated AFTER the order's last
-        // update - if the order changed since (e.g. total was corrected,
-        // status changed, a refund adjusted figures shown on the invoice),
-        // the stale cached file must be regenerated rather than served as-is.
         if ($existing && $existing->created_at->gte($order->updated_at)) {
             return response()->download($existing->getPath(), $fileName);
         }
@@ -63,15 +59,17 @@ class OrderController extends Controller
         $pdf = Pdf::loadView('invoices.eu-invoice', compact('order'))
             ->setPaper('a4', 'portrait');
 
-        $order
+        // Folosim direct obiectul Media întors de toMediaCollection() în loc
+        // să reinterogăm $order->getFirstMedia() imediat după - relația
+        // 'media' de pe $order poate rămâne cache-uită din interogarea
+        // inițială (mai ales după clearMediaCollection() de mai sus), ceea
+        // ce ducea la getFirstMedia() === null și crash pe ->getPath().
+        $media = $order
             ->addMediaFromString($pdf->output())
             ->usingFileName($fileName)
             ->toMediaCollection('invoices');
 
-        return response()->download(
-            $order->getFirstMedia('invoices')->getPath(),
-            $fileName
-        );
+        return response()->download($media->getPath(), $fileName);
     }
 
     /**
@@ -119,10 +117,6 @@ class OrderController extends Controller
 
         $existing = $order->getFirstMedia('invoices');
 
-        // Cached PDF is only valid if it was generated AFTER the order's last
-        // update - if the order changed since (e.g. total corrected, a refund
-        // adjusted figures shown on the invoice), the stale cached file must
-        // be regenerated rather than served as-is.
         if ($existing && $existing->created_at->gte($order->updated_at)) {
             return response()->download($existing->getPath(), $fileName);
         }
@@ -134,15 +128,14 @@ class OrderController extends Controller
         $pdf = Pdf::loadView('invoices.eu-invoice', compact('order'))
             ->setPaper('a4', 'portrait');
 
-        $order
+        // Vezi comentariul identic din adminInvoice() de mai sus - același
+        // motiv pentru care folosim $media direct, nu $order->getFirstMedia().
+        $media = $order
             ->addMediaFromString($pdf->output())
             ->usingFileName($fileName)
             ->toMediaCollection('invoices');
 
-        return response()->download(
-            $order->getFirstMedia('invoices')->getPath(),
-            $fileName
-        );
+        return response()->download($media->getPath(), $fileName);
     }
 
     public function adminRelease($id)

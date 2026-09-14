@@ -16,4 +16,10 @@
   --accent-sage: #d7e2c6;
   --accent-coral: #e2725b;   /* reduceri, badge-uri "sale"/"new" */
   --accent-coral-soft: #fbe4de;
+
+  --muted-light: #a09a95;
+--surface-muted: #f5f2ee; /* consolidates the three near-identical off-whites */
+--danger: #c0503a;
+--success-bg: #edf7ed;
+--success-text: #2e7d32;
 }
