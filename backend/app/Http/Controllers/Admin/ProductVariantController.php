@@ -133,13 +133,7 @@ private function generateSku(Product $product): string
         return response()->json($this->shape($variant->fresh(['attributeValues.attribute', 'attributeValues.media', 'inventory']), $variant->product_id));
     }
 
-    private function generateSku(Product $product): string
-    {
-        $base = $product->slug ?: (string) $product->id;
-
-        return 'SKU-'.strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)).'-'.Str::upper(Str::random(4));
-    }
-
+  
     /**
      * Images resolved from this variant's attribute values, but scoped to
      * THIS product - the same "Brown" AttributeValue row used by an
