@@ -598,91 +598,45 @@ const Dashboard = () => {
                         }
                       >
 
-                        {order.items?.map(
-                          (item: any) => {
+                        {order.items?.map((item: any) => {
+  const prod = item.product;
+  const originalPrice = Number(item.original_price ?? item.price);
+  const finalPrice = Number(item.price);
+  const hasLineDiscount = originalPrice > finalPrice;
+  const discountPct = hasLineDiscount
+    ? Math.round(((originalPrice - finalPrice) / originalPrice) * 100)
+    : 0;
 
-                            const prod =
-                              item.product;
+  return (
+    <div key={item.id} className={styles.itemRow}>
+      <div className={styles.itemInfo}>
+        <span className={styles.itemTitle}>
+          {prod?.title || "Digital Product"}
+        </span>
 
-                            const hasProductDiscount =
-                              prod?.has_discount ||
-                              prod?.discount_percentage;
+        {hasLineDiscount && (
+          <div className={styles.itemDiscountBadge}>
+            <Tag size={10} />
+            <span>{discountPct}% Off</span>
+          </div>
+        )}
+      </div>
 
-                            return (
-                              <div
-                                key={item.id}
-                                className={
-                                  styles.itemRow
-                                }
-                              >
-
-                                <div
-                                  className={
-                                    styles.itemInfo
-                                  }
-                                >
-
-                                  <span
-                                    className={
-                                      styles.itemTitle
-                                    }
-                                  >
-                                    {prod?.title ||
-                                      "Digital Product"}
-                                  </span>
-
-                                  {hasProductDiscount && (
-                                    <div
-                                      className={
-                                        styles.itemDiscountBadge
-                                      }
-                                    >
-                                      <Tag size={10} />
-
-                                      <span>
-                                        {prod.effective_discount_percentage ||
-                                          prod.discount_percentage}
-                                        % Off
-                                      </span>
-                                    </div>
-                                  )}
-
-                                </div>
-
-                                {prod?.asset_type ===
-                                  "digital" && (
-                                  <button
-                                    className={
-                                      styles.downloadBtn
-                                    }
-                                    disabled={
-                                      downloading ===
-                                      `product-${item.product_id}`
-                                    }
-                                    onClick={() =>
-                                      handleDownload(
-                                        item.product_id,
-                                        "product"
-                                      )
-                                    }
-                                  >
-                                    <Download
-                                      size={14}
-                                    />
-
-                                    <span>
-                                      {downloading ===
-                                      `product-${item.product_id}`
-                                        ? "..."
-                                        : "Download"}
-                                    </span>
-                                  </button>
-                                )}
-
-                              </div>
-                            );
-                          }
-                        )}
+      {prod?.asset_type === "digital" && (
+        <button
+          className={styles.downloadBtn}
+          disabled={downloading === `product-${item.product_id}`}
+          onClick={() => handleDownload(item.product_id, "product")}
+        >
+          <Download size={14} />
+          <span>
+            {downloading === `product-${item.product_id}` ? "..." : "Download"}
+          </span>
+        </button>
+      )}
+    </div>
+  );
+})}
 
                       </div>
                     </div>

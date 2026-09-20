@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Observers\ProductObserver;
+use App\Observers\ProductVariantObserver;
 use App\Observers\UserObserver;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -36,6 +38,7 @@ class AppServiceProvider extends ServiceProvider
 
         Product::observe(ProductObserver::class);
         User::observe(UserObserver::class);
+        ProductVariant::observe(ProductVariantObserver::class);
 
     }
 }

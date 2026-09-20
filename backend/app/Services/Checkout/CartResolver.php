@@ -27,6 +27,7 @@ class CartResolver
 
             $quantity = (int) $item['quantity'];
             $price = (float) $variant->final_price;
+            $originalPrice = (float) $variant->getEffectivePriceAttribute();
 
             $subtotal += $price * $quantity;
 
@@ -35,6 +36,7 @@ class CartResolver
                 'product_variant_id' => $variant->id,
                 'quantity' => $quantity,
                 'price' => $price,
+                'original_price' => $originalPrice,
             ];
 
             $reservationLines[] = ['variant' => $variant, 'quantity' => $quantity];

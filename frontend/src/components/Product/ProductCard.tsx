@@ -36,6 +36,22 @@ const variantLabel = (variant: ProductVariant) => {
   return values.map((av) => av.value).join(" / ") || variant.sku;
 };
 
+// A variant's own discount takes priority over the product's - independent
+// of each other (mirrors ProductVariant::getActiveDiscountAmount server-side,
+// which only falls back to the product/category discount when the variant
+// carries none of its own).
+const variantDiscount = (variant: ProductVariant) => {
+  const price = Number(variant.price);
+  const oldPrice = Number(variant.old_price ?? variant.price);
+  const hasDiscount = !!variant.has_discount && oldPrice > price;
+
+  return {
+    hasDiscount,
+    oldPrice,
+    price,
+  };
+};
+
 const ProductCard = ({ product }: ProductCardProps) => {
   const addToCart = useCartStore((s) => s.addToCart);
 
@@ -243,6 +259,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
                   {variantList.map((variant) => {
                     const thumb = variant.images?.[0];
                     const outOfStock = variant.in_stock === false;
+                    const { hasDiscount: vDiscount, oldPrice: vOldPrice, price: vPrice } =
+                      variantDiscount(variant);
 
                     return (
                       <button
@@ -268,7 +286,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
                         </span>
 
                         <span className={styles.variantRowPrice}>
-                          ${Number(variant.price ?? finalPrice).toFixed(2)}
+                          ${vPrice.toFixed(2)}
+                          {vDiscount && (
+                            <small
+                              style={{
+                                textDecoration: "line-through",
+                                opacity: 0.6,
+                                marginLeft: 4,
+                              }}
+                            >
+                              ${vOldPrice.toFixed(2)}
+                            </small>
+                          )}
                         </span>
 
                         {outOfStock && (

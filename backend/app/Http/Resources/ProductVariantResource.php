@@ -12,6 +12,8 @@ class ProductVariantResource extends JsonResource
             'id' => $this->id,
             'sku' => $this->sku,
             'price' => (float) $this->final_price,
+            'old_price' => (float) $this->getEffectivePriceAttribute(),
+            'discount_percentage' => $this->discount_percentage !== null ? (float) $this->discount_percentage : null,
             'has_discount' => $this->hasActiveDiscount(),
             'is_default' => (bool) $this->is_default,
 
@@ -30,10 +32,6 @@ class ProductVariantResource extends JsonResource
                     : true;
             }),
 
-            // Images are scoped per (product, attribute value) - a "Brown"
-            // belt and a "Brown" dress share the AttributeValue row but not
-            // its photos, since the media collection name is namespaced by
-            // this variant's own product id.
             'images' => $this->whenLoaded('attributeValues', function () {
                 $collection = 'images-product-'.$this->product_id;
 

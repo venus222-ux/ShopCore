@@ -64,6 +64,18 @@ const findMatch = (
   );
 };
 
+// A variant's own discount takes priority over the product's - independent
+// of it (mirrors ProductVariant::getActiveDiscountAmount server-side,
+// which only falls back to the product/category discount when the variant
+// carries none of its own).
+const variantPricing = (variant: ProductVariant) => {
+  const price = Number(variant.price);
+  const oldPrice = Number(variant.old_price ?? variant.price);
+  const hasDiscount = !!variant.has_discount && oldPrice > price;
+
+  return { price, oldPrice, hasDiscount };
+};
+
 const VariantSelector = ({ variants, onChange }: VariantSelectorProps) => {
   const attributes = useAttributeOptions(variants);
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -79,6 +91,7 @@ const VariantSelector = ({ variants, onChange }: VariantSelectorProps) => {
   };
 
   const matched = findMatch(variants, attributes, selected);
+  const matchedPricing = matched ? variantPricing(matched) : null;
 
   return (
     <div className="mb-4">
@@ -104,6 +117,28 @@ const VariantSelector = ({ variants, onChange }: VariantSelectorProps) => {
           </div>
         </div>
       ))}
+
+      {matched && matchedPricing && (
+        <div className="d-flex align-items-center gap-2 mb-2">
+          <span className="fw-bold text-dark">
+            ${matchedPricing.price.toFixed(2)}
+          </span>
+
+          {matchedPricing.hasDiscount && (
+            <>
+              <span
+                className="text-muted"
+                style={{ textDecoration: "line-through" }}
+              >
+                ${matchedPricing.oldPrice.toFixed(2)}
+              </span>
+              <span className="badge bg-success-subtle text-success small">
+                Save ${(matchedPricing.oldPrice - matchedPricing.price).toFixed(2)}
+              </span>
+            </>
+          )}
+        </div>
+      )}
 
       {matched && matched.in_stock === false && (
         <div className="text-danger small mb-2">

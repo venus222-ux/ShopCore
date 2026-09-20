@@ -24,23 +24,39 @@ export const useProducts = () => {
       filters.minPrice,
       filters.maxPrice,
       filters.assetType,
+      filters.onSale,
       filters.sort,
+      // Attributes is an object ({ color: "Black" }) - React Query hashes
+      // query keys structurally (stable JSON serialization), so including
+      // it directly here is safe and triggers a refetch on every toggle,
+      // exactly like every other filter above.
+      filters.attributes,
     ],
 
     initialPageParam: 1,
 
     queryFn: async ({ pageParam = 1 }) => {
-      const res = await API.get("/search", {
-        params: {
-          page: pageParam,
-          q: debouncedSearch,
-          category: filters.category,
-          min_price: filters.minPrice,
-          max_price: filters.maxPrice,
-          asset_type: filters.assetType,
-          sort: filters.sort,
-        },
+      // Built explicitly with bracket notation (attributes[color]=Black)
+      // rather than handed to axios as a nested object - guarantees the
+      // shape Laravel expects ($request->input('attributes') as an
+      // associative array), regardless of axios's default param
+      // serialization behavior.
+      const params: Record<string, any> = {
+        page: pageParam,
+        q: debouncedSearch,
+        category: filters.category,
+        min_price: filters.minPrice,
+        max_price: filters.maxPrice,
+        asset_type: filters.assetType,
+        on_sale: filters.onSale || undefined,
+        sort: filters.sort,
+      };
+
+      Object.entries(filters.attributes).forEach(([slug, value]) => {
+        params[`attributes[${slug}]`] = value;
       });
+
+      const res = await API.get("/search", { params });
 
       return res.data as ESPagination<any>;
     },

@@ -378,75 +378,59 @@
         </thead>
 
         <tbody>
-        @foreach($order->items as $item)
-            @php
-                $product = $item->product;
-                $originalPrice = (float) $item->price;
-                $discountPercentage = (float) ($product->discount_percentage ?? 0);
-                $discountFixed = (float) ($product->discount_fixed ?? 0);
-                $discountAmount = 0;
-                $discountLabel = null;
+      @foreach($order->items as $item)
+    @php
+        $product = $item->product;
+        $originalPrice = (float) ($item->original_price ?? $item->price);
+        $finalPrice = (float) $item->price;
+        $hasDiscount = $originalPrice > $finalPrice;
+        $discountLabel = null;
 
-                if ($discountPercentage > 0) {
-                    $discountAmount = $originalPrice * ($discountPercentage / 100);
-                    $discountLabel = rtrim(rtrim(number_format($discountPercentage, 2), '0'), '.') . '% OFF';
-                } elseif ($discountFixed > 0) {
-                    $discountAmount = $discountFixed;
-                    $discountLabel = '$' . number_format($discountFixed, 2) . ' OFF';
-                }
+        if ($hasDiscount) {
+            $pct = round((($originalPrice - $finalPrice) / $originalPrice) * 100);
+            $discountLabel = $pct . '% OFF';
+        }
 
-                $finalPrice = max(0, $originalPrice - $discountAmount);
-                $lineTotal = $finalPrice * $item->quantity;
-            @endphp
+        $lineTotal = $finalPrice * $item->quantity;
+    @endphp
 
-            <tr>
-              <td>
-    <span class="item-description">
-        {{ $product->title ?? 'Digital Product' }}
-    </span>
+    <tr>
+        <td>
+            <span class="item-description">
+                {{ $product->title ?? 'Digital Product' }}
+            </span>
 
-    @if($item->variant && $item->variant->attributeValues && $item->variant->attributeValues->count())
-        <span class="variant-attributes">
-            {{ $item->variant->attributeValues
-                ->map(fn ($av) => ($av->attribute->name ?? '') . ': ' . $av->value)
-                ->implode(' | ') }}
-        </span>
-    @endif
+            @if($item->variant && $item->variant->attributeValues && $item->variant->attributeValues->count())
+                <span class="variant-attributes">
+                    {{ $item->variant->attributeValues
+                        ->map(fn ($av) => ($av->attribute->name ?? '') . ': ' . $av->value)
+                        ->implode(' | ') }}
+                </span>
+            @endif
 
-    @if($discountLabel)
-        <span class="discount-badge">{{ $discountLabel }}</span>
-    @endif
-</td>
+            @if($discountLabel)
+                <span class="discount-badge">{{ $discountLabel }}</span>
+            @endif
+        </td>
 
-                <td class="text-right" style="font-weight: 500; color: var(--dark);">
-                    {{ $item->quantity }}
-                </td>
+        <td class="text-right">{{ $item->quantity }}</td>
 
-                <td class="text-right">
-                    @if($discountLabel)
-                        <div class="old-price">${{ number_format($originalPrice, 2) }}</div>
-                        <span style="font-weight: 600; color: var(--dark);">${{ number_format($finalPrice, 2) }}</span>
-                    @else
-                        <span style="font-weight: 600; color: var(--dark);">${{ number_format($originalPrice, 2) }}</span>
-                    @endif
-                </td>
+        <td class="text-right">
+            @if($hasDiscount)
+                <div class="old-price">${{ number_format($originalPrice, 2) }}</div>
+                <span style="font-weight: 600; color: var(--dark);">${{ number_format($finalPrice, 2) }}</span>
+            @else
+                <span style="font-weight: 600; color: var(--dark);">${{ number_format($finalPrice, 2) }}</span>
+            @endif
+        </td>
 
-                <td class="text-right">21%</td>
+        <td class="text-right">21%</td>
 
-                <td class="text-right" style="font-weight: 600; color: var(--dark);">
-                    ${{ number_format($lineTotal, 2) }}
-                </td>
-
-                <td class="status-area" style="width: {{ $order->shipping_address_1 ? '20%' : '60%' }}; vertical-align: top;">
-                    <span class="paid-badge">
-                      {{ $order->status === 'paid' ? 'PAID' : strtoupper($order->status) }}
-                    </span>
-                    <span class="ship-badge" style="margin-top: 6px;">
-                       {{ $order->payment_method === 'cash' ? '💵 Cash on Delivery' : '💳 Card' }}
-                    </span>
-                    </td>
-            </tr>
-        @endforeach
+        <td class="text-right" style="font-weight: 600; color: var(--dark);">
+            ${{ number_format($lineTotal, 2) }}
+        </td>
+    </tr>
+@endforeach
         </tbody>
     </table>
 

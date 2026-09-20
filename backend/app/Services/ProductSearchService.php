@@ -24,6 +24,9 @@ class ProductSearchService
         try {
             $product->loadMissing(['variants.attributeValues.attribute', 'variants.attributeValues.media', 'variants.inventory']);
 
+            $onSale = (bool) $product->hasActiveDiscount()
+                || $product->variants->contains(fn ($v) => $v->hasActiveDiscount());
+
             return $this->client->index([
                 'index' => config('services.elasticsearch.index'),
                 'id' => $product->id,
@@ -35,30 +38,15 @@ class ProductSearchService
                     'short_description' => $product->short_description ?? null,
                     'price' => (float) $product->price,
                     'final_price' => (float) $product->final_price,
-                    'on_sale' => (bool) $product->hasActiveDiscount(),
+                    'on_sale' => $onSale,
                     'category_id' => $product->category_id,
                     'category_name' => $product->category?->name,
                     'asset_type' => $product->asset_type,
                     'created_at' => $product->created_at,
                     'is_published' => (bool) $product->is_published,
-
                     'preview_url' => $product->preview_url,
                     'preview_urls' => $product->preview_urls,
-
-                    // Facetable attributes gathered from every variant of this
-                    // product, deduped. Requires an explicit 'nested' mapping on
-                    // this field - see App\Console\Commands\EnsureSearchIndexMapping.
-                    // Used ONLY for filtering/aggregations - kept separate from
-                    // 'variants' below, which the frontend needs in full to let
-                    // a shopper pick a specific combination directly from a
-                    // search result card.
                     'attributes' => $this->attributesPayload($product),
-
-                    // Full variant objects, shaped identically to
-                    // ProductVariantResource's output (including product-scoped
-                    // images), so ProductCard/VariantSelector behave the same
-                    // whether the product came from the DB listing endpoint or
-                    // an ES search hit.
                     'variants' => $this->variantsPayload($product),
                 ],
             ]);
@@ -116,6 +104,10 @@ class ProductSearchService
             ];
         }
 
+        if (! empty($filters['on_sale'])) {
+            $filter[] = ['term' => ['on_sale' => true]];
+        }
+
         if (! empty($filters['attributes']) && is_array($filters['attributes'])) {
             foreach ($filters['attributes'] as $slug => $value) {
                 if ($value === null || $value === '') {
@@ -170,26 +162,26 @@ class ProductSearchService
                 'sort' => $sortClause,
 
                 'aggs' => [
-    'categories' => [
-        'terms' => [
-            'field' => 'category_id',
-            'size' => 10,
-        ],
-    ],
-    'attributes' => [
-        'nested' => ['path' => 'attributes'],
-        'aggs' => [
-            'by_attribute' => [
-                'terms' => ['field' => 'attributes.attribute_slug', 'size' => 20],
-                'aggs' => [
-                    'values' => [
-                        'terms' => ['field' => 'attributes.value.keyword', 'size' => 50],
+                    'categories' => [
+                        'terms' => [
+                            'field' => 'category_id',
+                            'size' => 10,
+                        ],
+                    ],
+                    'attributes' => [
+                        'nested' => ['path' => 'attributes'],
+                        'aggs' => [
+                            'by_attribute' => [
+                                'terms' => ['field' => 'attributes.attribute_slug', 'size' => 20],
+                                'aggs' => [
+                                    'values' => [
+                                        'terms' => ['field' => 'attributes.value.keyword', 'size' => 50],
+                                    ],
+                                ],
+                            ],
+                        ],
                     ],
                 ],
-            ],
-        ],
-    ],
-],
             ],
         ]);
     }
@@ -216,11 +208,11 @@ class ProductSearchService
         foreach ($products as $product) {
             $product->loadMissing(['variants.attributeValues.attribute', 'variants.attributeValues.media', 'variants.inventory']);
 
+            $onSale = (bool) $product->hasActiveDiscount()
+                || $product->variants->contains(fn ($v) => $v->hasActiveDiscount());
+
             $params['body'][] = [
-                'index' => [
-                    '_index' => config('services.elasticsearch.index'),
-                    '_id' => $product->id,
-                ],
+                'index' => ['_index' => config('services.elasticsearch.index'), '_id' => $product->id],
             ];
 
             $params['body'][] = [
@@ -231,7 +223,7 @@ class ProductSearchService
                 'short_description' => $product->short_description ?? null,
                 'price' => (float) $product->price,
                 'final_price' => (float) $product->final_price,
-                'on_sale' => (bool) $product->hasActiveDiscount(),
+                'on_sale' => $onSale,
                 'category_id' => $product->category_id,
                 'category_name' => $product->category?->name,
                 'asset_type' => $product->asset_type,
@@ -302,6 +294,7 @@ class ProductSearchService
                 'id' => $variant->id,
                 'sku' => $variant->sku,
                 'price' => (float) $variant->final_price,
+                'old_price' => (float) $variant->getEffectivePriceAttribute(),
                 'has_discount' => $variant->hasActiveDiscount(),
                 'is_default' => (bool) $variant->is_default,
 

@@ -17,6 +17,7 @@ interface CartState {
   increaseQty: (productId: number, variantId?: number) => void;
   decreaseQty: (productId: number, variantId?: number) => void;
   clearCart: () => void;
+  syncItem: (productId: number, freshProduct: Product) => void;
 }
 
 // Two lines match if they're the same product AND the same variant
@@ -70,6 +71,23 @@ export const useCartStore = create<CartState>()(
         }),
 
       clearCart: () => set({ items: [] }),
+
+      syncItem: (productId, freshProduct) =>
+        set({
+          items: get().items.map((i) =>
+            i.id === productId
+              ? {
+                  ...i,
+                  price: freshProduct.price,
+                  final_price: freshProduct.final_price,
+                  has_discount: freshProduct.has_discount,
+                  discount_percentage: freshProduct.discount_percentage,
+                  discount_fixed: freshProduct.discount_fixed,
+                  variants: freshProduct.variants ?? i.variants,
+                }
+              : i,
+          ),
+        }),
     }),
     {
       name: "cart-storage",

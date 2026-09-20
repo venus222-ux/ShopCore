@@ -3,6 +3,7 @@ import { useCartStore } from "../store/useCartStore";
 import { Link, useNavigate } from "react-router-dom";
 import styles from "../styles/Cart.module.css";
 import { getProxiedImageUrl } from "../utils/image";
+import { getItemPricing } from "../utils/pricing";
 import type { CartItem } from "../types";
 import {
   ShoppingBag,
@@ -50,17 +51,12 @@ const Cart = () => {
     return items.reduce(
       (acc, item) => {
         const qty = item.quantity || 1;
-        const originalPrice = Number(item.price || 0);
-
-        const unitPrice =
-          item.has_discount && item.final_price !== undefined
-            ? Number(item.final_price)
-            : originalPrice;
+        const { unitPrice, originalUnitPrice } = getItemPricing(item);
 
         acc.totalItems += qty;
-        acc.totalOriginalSubtotal += qty * originalPrice;
+        acc.totalOriginalSubtotal += qty * originalUnitPrice;
         acc.totalFinalSubtotal += qty * unitPrice;
-        acc.totalDiscountSaved += qty * (originalPrice - unitPrice);
+        acc.totalDiscountSaved += qty * (originalUnitPrice - unitPrice);
         return acc;
       },
       {
@@ -149,17 +145,12 @@ const Cart = () => {
             const image = getItemImage(item);
             const imageUrl = getProxiedImageUrl(image);
 
-            const isDiscounted = !!item.has_discount;
-            const originalPrice = Number(item.price || 0);
-            const unitPrice =
-              isDiscounted && item.final_price !== undefined
-                ? Number(item.final_price)
-                : originalPrice;
-
-            const actualDiscountPercentage =
-              originalPrice > 0 && unitPrice < originalPrice
-                ? Math.round(((originalPrice - unitPrice) / originalPrice) * 100)
-                : 0;
+            const {
+              unitPrice,
+              originalUnitPrice: originalPrice,
+              hasDiscount: isDiscounted,
+              discountPercent: actualDiscountPercentage,
+            } = getItemPricing(item);
 
             return (
               <div key={item.id} className={styles.itemCard}>

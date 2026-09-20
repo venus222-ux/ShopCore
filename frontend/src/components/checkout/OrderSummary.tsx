@@ -1,6 +1,7 @@
 import { Tag, ShieldCheck } from "lucide-react";
 import styles from "../../styles/Checkout.module.css";
 import { getProxiedImageUrl } from "../../utils/image";
+import { getItemPricing } from "../../utils/pricing";
 
 interface OrderSummaryProps {
   items: any[];
@@ -56,14 +57,11 @@ export default function OrderSummary({
 
       <div className={styles.miniItemList}>
         {items.map((item: any) => {
-          const isDiscounted = !!item.has_discount;
-
-          const unitPrice =
-            isDiscounted && item.final_price !== undefined
-              ? Number(item.final_price)
-              : Number(item.price || 0);
-
-          const originalUnitPrice = Number(item.price || 0);
+          const {
+            unitPrice,
+            originalUnitPrice,
+            hasDiscount: isDiscounted,
+          } = getItemPricing(item);
 
           const image = getItemImage(item);
           const imageUrl = image ? getProxiedImageUrl(image) : "/placeholder.png";

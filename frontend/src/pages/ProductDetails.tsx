@@ -77,32 +77,70 @@ const ProductDetails = () => {
     setCurrentIndex(0);
   }, [selectedVariant?.id]);
 
-  const hasDiscount = !!product?.has_discount;
-  const finalPrice = product?.final_price ?? product?.price ?? 0;
-  const originalPrice = product?.price ?? 0;
-  const savings = originalPrice - finalPrice;
   const isDigital = product?.asset_type === "digital";
+
+  /*
+   * Pricing priority:
+   * 1. Selected variant's own discount (variant.has_discount /
+   *    variant.old_price) - independent of the product's discount, mirrors
+   *    ProductVariant::getActiveDiscountAmount server-side, which only
+   *    falls back to the product/category discount when the variant
+   *    carries none of its own.
+   * 2. The variant's own price, even without a discount (variants can be
+   *    priced differently from one another with no discount involved).
+   * 3. No variant selected (or single-variant product) - product-level
+   *    price/discount, exactly as before.
+   */
+  const { finalPrice, originalPrice, hasDiscount } = useMemo(() => {
+    if (selectedVariant) {
+      const price = Number(selectedVariant.price);
+      const oldPrice = Number(selectedVariant.old_price ?? selectedVariant.price);
+      const variantHasDiscount = !!selectedVariant.has_discount && oldPrice > price;
+
+      return {
+        finalPrice: price,
+        originalPrice: variantHasDiscount ? oldPrice : price,
+        hasDiscount: variantHasDiscount,
+      };
+    }
+
+    const price = Number(product?.final_price ?? product?.price ?? 0);
+    const original = Number(product?.price ?? 0);
+
+    return {
+      finalPrice: price,
+      originalPrice: original,
+      hasDiscount: !!product?.has_discount && original > price,
+    };
+  }, [selectedVariant, product]);
+
+  const savings = originalPrice - finalPrice;
 
   let discountBadgeLabel = "";
 
-  if (hasDiscount && product) {
-    if (
-      product.discount_percentage &&
-      product.discount_percentage > 0
-    ) {
-      discountBadgeLabel = `${product.discount_percentage}% OFF`;
-    } else if (
-      product.discount_fixed &&
-      product.discount_fixed > 0
-    ) {
-      discountBadgeLabel = `$${Number(product.discount_fixed).toFixed(0)} OFF`;
-    } else if (
-      product.effective_discount_percentage &&
-      product.effective_discount_percentage > 0
-    ) {
-      discountBadgeLabel = `${product.effective_discount_percentage}% OFF`;
-    } else {
-      discountBadgeLabel = "SALE";
+  if (hasDiscount) {
+    if (selectedVariant) {
+      // Variant discount is only ever expressed as a raw price delta on
+      // the frontend today (no discount_percentage surfaced per-variant
+      // in ProductVariant type) - show the computed percentage instead.
+      const pct =
+        originalPrice > 0
+          ? Math.round(((originalPrice - finalPrice) / originalPrice) * 100)
+          : 0;
+      discountBadgeLabel = pct > 0 ? `${pct}% OFF` : "SALE";
+    } else if (product) {
+      if (product.discount_percentage && product.discount_percentage > 0) {
+        discountBadgeLabel = `${product.discount_percentage}% OFF`;
+      } else if (product.discount_fixed && product.discount_fixed > 0) {
+        discountBadgeLabel = `$${Number(product.discount_fixed).toFixed(0)} OFF`;
+      } else if (
+        product.effective_discount_percentage &&
+        product.effective_discount_percentage > 0
+      ) {
+        discountBadgeLabel = `${product.effective_discount_percentage}% OFF`;
+      } else {
+        discountBadgeLabel = "SALE";
+      }
     }
   }
 
@@ -155,12 +193,6 @@ const ProductDetails = () => {
 
   if (isLoading) return <LoadingState />;
   if (isError || !product) return <ErrorState />;
-
-  console.log("Original:", galleryImages[currentIndex]);
-  console.log(
-    "Proxy:",
-    getProxiedImageUrl(galleryImages[currentIndex])
-  );
 
   return (
     <div className={styles.pageWrapper}>

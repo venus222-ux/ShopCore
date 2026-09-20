@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useMarketplaceStore } from "../store/useMarketplaceStore";
 import { useProducts } from "../hooks/useProducts";
@@ -20,6 +21,7 @@ const FiltersSidebar = () => {
     minPrice,
     maxPrice,
     assetType,
+    onSale,
     sort,
     attributes,
     setSearch,
@@ -53,6 +55,7 @@ const FiltersSidebar = () => {
         maxPrice: localMax === "" ? null : Number(localMax),
       });
     }, 500);
+
     return () => clearTimeout(handler);
   }, [localMin, localMax, setFilters]);
 
@@ -60,7 +63,11 @@ const FiltersSidebar = () => {
     <aside className={styles.sidebar}>
       <div className={styles.header}>
         <h3>Filters</h3>
-        <button className={styles.resetBtn} onClick={resetFilters} title="Clear all">
+        <button
+          className={styles.resetBtn}
+          onClick={resetFilters}
+          title="Clear all"
+        >
           Reset
         </button>
       </div>
@@ -84,10 +91,13 @@ const FiltersSidebar = () => {
           className={styles.input}
           value={category ?? ""}
           onChange={(e) =>
-            setFilters({ category: e.target.value ? Number(e.target.value) : null })
+            setFilters({
+              category: e.target.value ? Number(e.target.value) : null,
+            })
           }
         >
           <option value="">All Categories</option>
+
           {facets.categories.map((cat) => (
             <option key={cat.id} value={cat.id}>
               {cat.name} ({cat.count})
@@ -99,6 +109,7 @@ const FiltersSidebar = () => {
       {/* Price Range */}
       <div className={styles.section}>
         <label className={styles.label}>Price Range</label>
+
         <div className={styles.priceGrid}>
           <input
             type="number"
@@ -107,6 +118,7 @@ const FiltersSidebar = () => {
             value={localMin}
             onChange={(e) => setLocalMin(e.target.value)}
           />
+
           <input
             type="number"
             className={styles.input}
@@ -120,13 +132,20 @@ const FiltersSidebar = () => {
       {/* Asset Type */}
       <div className={styles.section}>
         <label className={styles.label}>Asset Type</label>
+
         <div className={styles.pillContainer}>
           {["Premium", "Free"].map((type) => (
             <button
               key={type}
               type="button"
-              className={`${styles.pill} ${assetType === type ? styles.pillActive : ""}`}
-              onClick={() => setFilters({ assetType: assetType === type ? null : type })}
+              className={`${styles.pill} ${
+                assetType === type ? styles.pillActive : ""
+              }`}
+              onClick={() =>
+                setFilters({
+                  assetType: assetType === type ? null : type,
+                })
+              }
             >
               {type}
             </button>
@@ -134,20 +153,44 @@ const FiltersSidebar = () => {
         </div>
       </div>
 
+      {/* On Sale toggle */}
+      <div className={styles.section}>
+        <label className={styles.label}>Deals</label>
+
+        <div className={styles.pillContainer}>
+          <button
+            type="button"
+            className={`${styles.pill} ${
+              onSale ? styles.pillActive : ""
+            }`}
+            onClick={() => setFilters({ onSale: !onSale })}
+          >
+            🔥 On Sale Only
+          </button>
+        </div>
+      </div>
+
       {/* ⭐ Dynamic Attribute Facets (Color, Size, Software, etc.) */}
       {facets.attributes.map((attr) => (
         <div key={attr.slug} className={styles.section}>
           <label className={styles.label}>{attr.name}</label>
+
           <div className={styles.pillContainer}>
             {attr.values.map((val) => {
               const isSelected = attributes[attr.slug] === val.value;
+
               return (
                 <button
                   key={val.value}
                   type="button"
-                  className={`${styles.pill} ${isSelected ? styles.pillActive : ""}`}
+                  className={`${styles.pill} ${
+                    isSelected ? styles.pillActive : ""
+                  }`}
                   onClick={() =>
-                    setAttributeFilter(attr.slug, isSelected ? null : val.value)
+                    setAttributeFilter(
+                      attr.slug,
+                      isSelected ? null : val.value
+                    )
                   }
                 >
                   {val.value} ({val.count})
@@ -161,6 +204,7 @@ const FiltersSidebar = () => {
       {/* Sort */}
       <div className={styles.footer}>
         <label className={styles.label}>Sort By</label>
+
         <select
           className={styles.input}
           value={sort}
@@ -176,3 +220,4 @@ const FiltersSidebar = () => {
 };
 
 export default FiltersSidebar;
+

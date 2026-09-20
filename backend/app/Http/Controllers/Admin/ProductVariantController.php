@@ -18,53 +18,53 @@ class ProductVariantController extends Controller
             ->map(fn ($v) => $this->shape($v, $product->id));
     }
 
-    public function store(StoreProductRequest $request, ProductMediaService $mediaService)
-{
-    $data = $request->validated();
+    public function store(Request $request, Product $product)
+    {
+        $data = $request->validate([
+            'sku' => 'nullable|string|max:100|unique:product_variants,sku',
+            'price' => 'nullable|numeric|min:0',
+            'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'discount_fixed' => 'nullable|numeric|min:0',
+            'discount_starts_at' => 'nullable|date',
+            'discount_ends_at' => 'nullable|date|after_or_equal:discount_starts_at',
+            'is_default' => 'boolean|nullable',
+            'attribute_value_ids' => 'array',
+            'attribute_value_ids.*' => 'integer|exists:attribute_values,id',
+            'track_stock' => 'boolean|nullable',
+            'quantity' => 'integer|min:0|nullable',
+        ]);
 
-    $data['slug'] = Str::slug($data['title']).'-'.uniqid();
-    $data['user_id'] = auth()->id();
+        $isFirstVariant = ! $product->variants()->exists();
 
-    $data['discount_percentage'] = $data['discount_percentage'] ?? 0;
-    $data['discount_fixed'] = $data['discount_fixed'] ?? null;
+        $variant = $product->variants()->create([
+            'sku' => $data['sku'] ?: $this->generateSku($product),
+            'price' => $data['price'] ?? null,
+            'discount_percentage' => $data['discount_percentage'] ?? null,
+            'discount_fixed' => $data['discount_fixed'] ?? null,
+            'discount_starts_at' => $data['discount_starts_at'] ?? null,
+            'discount_ends_at' => $data['discount_ends_at'] ?? null,
+            'is_default' => $data['is_default'] ?? $isFirstVariant,
+        ]);
 
-    $product = Product::create($data);
+        $variant->attributeValues()->sync($data['attribute_value_ids'] ?? []);
 
-    // Orice produs trebuie să aibă cel puțin o variantă cumpărabilă
-    // (vezi CartResolver). Produsele "simple", fără atribute, primesc
-    // automat o variantă default care preia prețul de la produsul părinte.
-    $variant = $product->variants()->create([
-        'sku' => $this->generateSku($product),
-        'price' => null, // fallback pe Product::price
-        'is_default' => true,
-    ]);
+        $variant->inventory()->create([
+            'track_stock' => $data['track_stock'] ?? true,
+            'quantity' => $data['quantity'] ?? 0,
+            'reserved' => 0,
+        ]);
 
-    $variant->inventory()->create([
-        'track_stock' => true,
-        'quantity' => 0,
-        'reserved' => 0,
-    ]);
+        $variant->load(['attributeValues.attribute', 'attributeValues.media', 'inventory']);
 
-    $mediaService->syncPreviewImages($product);
-
-    if ($data['asset_type'] === 'digital' && $request->hasFile('asset_file')) {
-        $product->addMedia($request->file('asset_file'))->toMediaCollection('asset');
+        return response()->json($this->shape($variant, $product->id), 201);
     }
 
-    $product->load(['category', 'media']);
+    private function generateSku(Product $product): string
+    {
+        $base = $product->slug ?: (string) $product->id;
 
-    return response()->json([
-        'message' => 'Product created',
-        'data' => new ProductResource($product),
-    ], 201);
-}
-
-private function generateSku(Product $product): string
-{
-    $base = $product->slug ?: (string) $product->id;
-
-    return 'SKU-'.strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)).'-'.Str::upper(Str::random(4));
-}
+        return 'SKU-'.strtoupper(preg_replace('/[^a-zA-Z0-9]+/', '-', $base)).'-'.Str::upper(Str::random(4));
+    }
 
     public function update(Request $request, ProductVariant $variant)
     {
@@ -72,6 +72,9 @@ private function generateSku(Product $product): string
             'sku' => 'nullable|string|max:100|unique:product_variants,sku,'.$variant->id,
             'price' => 'nullable|numeric|min:0',
             'discount_percentage' => 'nullable|numeric|min:0|max:100',
+            'discount_fixed' => 'nullable|numeric|min:0',
+            'discount_starts_at' => 'nullable|date',
+            'discount_ends_at' => 'nullable|date|after_or_equal:discount_starts_at',
             'is_default' => 'boolean|nullable',
             'attribute_value_ids' => 'array|nullable',
             'attribute_value_ids.*' => 'integer|exists:attribute_values,id',
@@ -81,6 +84,9 @@ private function generateSku(Product $product): string
             'sku' => $data['sku'] ?? $variant->sku,
             'price' => array_key_exists('price', $data) ? $data['price'] : $variant->price,
             'discount_percentage' => array_key_exists('discount_percentage', $data) ? $data['discount_percentage'] : $variant->discount_percentage,
+            'discount_fixed' => array_key_exists('discount_fixed', $data) ? $data['discount_fixed'] : $variant->discount_fixed,
+            'discount_starts_at' => array_key_exists('discount_starts_at', $data) ? $data['discount_starts_at'] : $variant->discount_starts_at,
+            'discount_ends_at' => array_key_exists('discount_ends_at', $data) ? $data['discount_ends_at'] : $variant->discount_ends_at,
             'is_default' => $data['is_default'] ?? $variant->is_default,
         ]);
 
@@ -94,27 +100,27 @@ private function generateSku(Product $product): string
     }
 
     public function destroy(ProductVariant $variant)
-{
-    $siblingsCount = $variant->product->variants()->count();
+    {
+        $siblingsCount = $variant->product->variants()->count();
 
-    if ($siblingsCount === 1) {
-        return response()->json([
-            'message' => 'Cannot delete the only variant of a product - every product needs at least one purchasable variant.',
-        ], 422);
+        if ($siblingsCount === 1) {
+            return response()->json([
+                'message' => 'Cannot delete the only variant of a product - every product needs at least one purchasable variant.',
+            ], 422);
+        }
+
+        $wasDefault = $variant->is_default;
+
+        $variant->delete();
+
+        if ($wasDefault) {
+            // Promovează o altă variantă rămasă la default, ca produsul
+            // să rămână cumpărabil.
+            $variant->product->variants()->first()?->update(['is_default' => true]);
+        }
+
+        return response()->json(['message' => 'Variant deleted']);
     }
-
-    $wasDefault = $variant->is_default;
-
-    $variant->delete();
-
-    if ($wasDefault) {
-        // Promovează o altă variantă rămasă la default, ca produsul
-        // să rămână cumpărabil.
-        $variant->product->variants()->first()?->update(['is_default' => true]);
-    }
-
-    return response()->json(['message' => 'Variant deleted']);
-}
 
     public function updateInventory(Request $request, ProductVariant $variant)
     {
@@ -133,7 +139,6 @@ private function generateSku(Product $product): string
         return response()->json($this->shape($variant->fresh(['attributeValues.attribute', 'attributeValues.media', 'inventory']), $variant->product_id));
     }
 
-  
     /**
      * Images resolved from this variant's attribute values, but scoped to
      * THIS product - the same "Brown" AttributeValue row used by an
@@ -162,6 +167,11 @@ private function generateSku(Product $product): string
             'sku' => $variant->sku,
             'price' => $variant->price !== null ? (float) $variant->price : null,
             'discount_percentage' => $variant->discount_percentage !== null ? (float) $variant->discount_percentage : null,
+            'discount_fixed' => $variant->discount_fixed !== null ? (float) $variant->discount_fixed : null,
+            'discount_starts_at' => $variant->discount_starts_at?->format('Y-m-d\TH:i'),
+            'discount_ends_at' => $variant->discount_ends_at?->format('Y-m-d\TH:i'),
+            'final_price' => (float) $variant->final_price,
+            'has_discount' => $variant->hasActiveDiscount(),
             'is_default' => (bool) $variant->is_default,
             'attribute_values' => $variant->attributeValues->map(fn ($av) => [
                 'value_id' => $av->id,
@@ -178,7 +188,7 @@ private function generateSku(Product $product): string
                 'quantity' => $variant->inventory->quantity,
                 'reserved' => $variant->inventory->reserved,
             ] : null,
-            'images' => $images, // resolved chain result, for admin preview
+            'images' => $images,
         ];
     }
 }

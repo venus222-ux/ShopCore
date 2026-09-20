@@ -6,12 +6,13 @@ interface MarketplaceState {
   minPrice: number | null;
   maxPrice: number | null;
   assetType: string | null;
+  onSale: boolean;
   sort: string;
-  attributes: Record<string, string>; // ⭐ Add dynamic attributes state
+  attributes: Record<string, string>;
 
   setSearch: (q: string) => void;
   setFilters: (filters: Partial<Omit<MarketplaceState, 'attributes'>>) => void;
-  setAttributeFilter: (slug: string, value: string | null) => void; // ⭐ Toggle attributes
+  setAttributeFilter: (slug: string, value: string | null) => void;
   resetFilters: () => void;
 }
 
@@ -21,12 +22,13 @@ export const useMarketplaceStore = create<MarketplaceState>((set) => ({
   minPrice: null,
   maxPrice: null,
   assetType: null,
+  onSale: false,
   sort: 'newest',
   attributes: {},
 
   setSearch: (search) => set({ search }),
   setFilters: (filters) => set((state) => ({ ...state, ...filters })),
-  
+
   setAttributeFilter: (slug, value) => set((state) => {
     const nextAttributes = { ...state.attributes };
     if (!value) {
@@ -43,6 +45,7 @@ export const useMarketplaceStore = create<MarketplaceState>((set) => ({
     minPrice: null,
     maxPrice: null,
     assetType: null,
+    onSale: false,
     sort: 'newest',
     attributes: {},
   }),

@@ -10,6 +10,7 @@ use App\Models\ProductVariant;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 class ProductSeeder extends Seeder
 {
@@ -18,7 +19,7 @@ class ProductSeeder extends Seeder
         // Get vendors (or create some if none exist)
         $vendors = User::query()
             ->when(
-                method_exists(User::class, 'roles') || class_exists(\Spatie\Permission\Models\Role::class),
+                method_exists(User::class, 'roles') || class_exists(Role::class),
                 fn ($q) => $q->whereHas('roles', fn ($r) => $r->whereIn('name', ['vendor', 'seller', 'admin']))
             )
             ->take(30)
@@ -32,21 +33,22 @@ class ProductSeeder extends Seeder
 
         if ($leafCategories->isEmpty()) {
             $this->command->error('No leaf categories found. Run CategorySeeder first.');
+
             return;
         }
 
-        $colorAttr     = Attribute::where('slug', 'color')->first();
-        $sizeAttr      = Attribute::where('slug', 'size')->first();
-        $materialAttr  = Attribute::where('slug', 'material')->first();
+        $colorAttr = Attribute::where('slug', 'color')->first();
+        $sizeAttr = Attribute::where('slug', 'size')->first();
+        $materialAttr = Attribute::where('slug', 'material')->first();
 
         $productTemplates = $this->getProductTemplates();
 
         $this->command->info('Creating 1000 products with matching images & variants...');
 
         for ($i = 1; $i <= 1000; $i++) {
-            $template  = $productTemplates[array_rand($productTemplates)];
-            $category  = $leafCategories->random();
-            $vendor    = $vendors->random();
+            $template = $productTemplates[array_rand($productTemplates)];
+            $category = $leafCategories->random();
+            $vendor = $vendors->random();
 
             // Build realistic title
             $color = $template['colors'][array_rand($template['colors'])];
@@ -61,18 +63,18 @@ class ProductSeeder extends Seeder
             $hasDiscount = rand(0, 100) < 30;
 
             $product = Product::create([
-                'title'               => $title,
-                'slug'                => Str::slug($title) . '-' . Str::random(6),
-                'short_description'   => "High quality {$title}. Perfect for everyday use.",
-                'description'         => $this->generateDescription($title),
-                'price'               => $price,
-                'asset_type'          => 'image',
-                'user_id'             => $vendor->id,
-                'category_id'         => $category->id,
-                'is_published'        => true,
+                'title' => $title,
+                'slug' => Str::slug($title).'-'.Str::random(6),
+                'short_description' => "High quality {$title}. Perfect for everyday use.",
+                'description' => $this->generateDescription($title),
+                'price' => $price,
+                'asset_type' => 'image',
+                'user_id' => $vendor->id,
+                'category_id' => $category->id,
+                'is_published' => true,
                 'discount_percentage' => $hasDiscount ? rand(10, 35) : 0,   // never null
-                'discount_starts_at'  => $hasDiscount ? now()->subDays(rand(0, 5)) : null,
-                'discount_ends_at'    => $hasDiscount ? now()->addDays(rand(10, 45)) : null,
+                'discount_starts_at' => $hasDiscount ? now()->subDays(rand(0, 5)) : null,
+                'discount_ends_at' => $hasDiscount ? now()->addDays(rand(10, 45)) : null,
             ]);
 
             // ===== Matching Image (LoremFlickr uses the title keywords) =====
@@ -82,12 +84,12 @@ class ProductSeeder extends Seeder
             try {
                 $product->addMediaFromUrl($imageUrl)
                     ->usingName($title)
-                    ->usingFileName(Str::slug($title) . '.jpg')
+                    ->usingFileName(Str::slug($title).'.jpg')
                     ->toMediaCollection('previews');
             } catch (\Exception $e) {
                 // Fallback
                 try {
-                    $product->addMediaFromUrl("https://picsum.photos/seed/" . md5($title) . "/800/800")
+                    $product->addMediaFromUrl('https://picsum.photos/seed/'.md5($title).'/800/800')
                         ->usingName($title)
                         ->toMediaCollection('previews');
                 } catch (\Exception $e2) {
@@ -98,9 +100,10 @@ class ProductSeeder extends Seeder
             // Extra image on ~40% of products
             if (rand(0, 100) < 40) {
                 try {
-                    $product->addMediaFromUrl("https://loremflickr.com/800/800/{$keywords}/all?lock=" . rand(1, 9999))
+                    $product->addMediaFromUrl("https://loremflickr.com/800/800/{$keywords}/all?lock=".rand(1, 9999))
                         ->toMediaCollection('previews');
-                } catch (\Exception $e) {}
+                } catch (\Exception $e) {
+                }
             }
 
             // ===== Variants =====
@@ -118,13 +121,13 @@ class ProductSeeder extends Seeder
     {
         // Default variant
         $default = ProductVariant::create([
-            'product_id'          => $product->id,
-            'sku'                 => 'SKU-' . strtoupper(Str::random(8)),
-            'price'               => $product->price,
-            'is_default'          => true,
+            'product_id' => $product->id,
+            'sku' => 'SKU-'.strtoupper(Str::random(8)),
+            'price' => $product->price,
+            'is_default' => true,
             'discount_percentage' => $product->discount_percentage ?? 0,
-            'discount_starts_at'  => $product->discount_starts_at,
-            'discount_ends_at'    => $product->discount_ends_at,
+            'discount_starts_at' => $product->discount_starts_at,
+            'discount_ends_at' => $product->discount_ends_at,
         ]);
 
         // Attach main color
@@ -148,10 +151,10 @@ class ProductSeeder extends Seeder
 
             foreach ($sizes as $size) {
                 $variant = ProductVariant::create([
-                    'product_id'          => $product->id,
-                    'sku'                 => 'SKU-' . strtoupper(Str::random(8)),
-                    'price'               => round($product->price + rand(-8, 20), 2),
-                    'is_default'          => false,
+                    'product_id' => $product->id,
+                    'sku' => 'SKU-'.strtoupper(Str::random(8)),
+                    'price' => round($product->price + rand(-8, 20), 2),
+                    'is_default' => false,
                     'discount_percentage' => 0,
                 ]);
 
@@ -284,8 +287,8 @@ class ProductSeeder extends Seeder
 
     private function generateDescription(string $title): string
     {
-        return "Discover the {$title}. Crafted with attention to detail and premium materials. " .
-               "This product combines style, comfort and durability. Perfect for any occasion. " .
-               "Available in multiple sizes and colors. Fast shipping from verified vendors.";
+        return "Discover the {$title}. Crafted with attention to detail and premium materials. ".
+               'This product combines style, comfort and durability. Perfect for any occasion. '.
+               'Available in multiple sizes and colors. Fast shipping from verified vendors.';
     }
 }

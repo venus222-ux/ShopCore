@@ -46,9 +46,18 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
   const [trackStock, setTrackStock] = useState(true);
   const [selectedValues, setSelectedValues] = useState<Record<number, number>>({});
 
+  const [discountPercentage, setDiscountPercentage] = useState<number>(0);
+  const [discountFixed, setDiscountFixed] = useState<number | null>(null);
+  const [discountStartsAt, setDiscountStartsAt] = useState("");
+  const [discountEndsAt, setDiscountEndsAt] = useState("");
+
   const [editingVariantId, setEditingVariantId] = useState<number | null>(null);
   const [editSku, setEditSku] = useState("");
   const [editPrice, setEditPrice] = useState<number | null>(null);
+  const [editDiscountPercentage, setEditDiscountPercentage] = useState<number | null>(null);
+  const [editDiscountFixed, setEditDiscountFixed] = useState<number | null>(null);
+  const [editDiscountStartsAt, setEditDiscountStartsAt] = useState("");
+  const [editDiscountEndsAt, setEditDiscountEndsAt] = useState("");
 
   const imageInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
   const [uploadingValueId, setUploadingValueId] = useState<number | null>(null);
@@ -66,6 +75,10 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
     const payload = {
       sku: sku.trim(),
       price: Number(price),
+      discount_percentage: discountPercentage || undefined,
+      discount_fixed: discountFixed ?? undefined,
+      discount_starts_at: discountStartsAt || undefined,
+      discount_ends_at: discountEndsAt || undefined,
       quantity: Number(quantity),
       track_stock: trackStock,
       attribute_value_ids: Object.values(selectedValues),
@@ -78,6 +91,10 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
     setSelectedValues({});
     setQuantity(10);
     setPrice(basePrice);
+    setDiscountPercentage(0);
+    setDiscountFixed(null);
+    setDiscountStartsAt("");
+    setDiscountEndsAt("");
   };
 
   const handleStockUpdate = async (variantId: number, qty: number, track: boolean) => {
@@ -89,18 +106,30 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
     setEditingVariantId(v.id);
     setEditSku(v.sku);
     setEditPrice(v.price);
+    setEditDiscountPercentage(v.discount_percentage ?? null);
+    setEditDiscountFixed(v.discount_fixed ?? null);
+    setEditDiscountStartsAt(v.discount_starts_at ?? "");
+    setEditDiscountEndsAt(v.discount_ends_at ?? "");
   };
 
   const cancelEdit = () => {
     setEditingVariantId(null);
     setEditSku("");
     setEditPrice(null);
+    setEditDiscountPercentage(null);
+    setEditDiscountFixed(null);
+    setEditDiscountStartsAt("");
+    setEditDiscountEndsAt("");
   };
 
   const saveEdit = async (variantId: number) => {
     await updateVariant(variantId, {
       sku: editSku.trim() || undefined,
       price: editPrice,
+      discount_percentage: editDiscountPercentage,
+      discount_fixed: editDiscountFixed,
+      discount_starts_at: editDiscountStartsAt || undefined,
+      discount_ends_at: editDiscountEndsAt || undefined,
     });
     await fetchVariants(productId);
     cancelEdit();
@@ -228,6 +257,70 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
           </div>
 
           <div className={styles.sizeRowStat}>
+            <span className={styles.sizeRowStatLabel}>Discount %</span>
+            {isEditing ? (
+              <input
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                value={editDiscountPercentage ?? ""}
+                onChange={(e) =>
+                  setEditDiscountPercentage(e.target.value ? Number(e.target.value) : null)
+                }
+                className={styles.sizeRowSmallInput}
+              />
+            ) : v.has_discount && v.discount_percentage ? (
+              <strong>{v.discount_percentage}%</strong>
+            ) : (
+              <span>—</span>
+            )}
+          </div>
+
+          <div className={styles.sizeRowStat}>
+            <span className={styles.sizeRowStatLabel}>Discount $</span>
+            {isEditing ? (
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={editDiscountFixed ?? ""}
+                onChange={(e) =>
+                  setEditDiscountFixed(e.target.value ? Number(e.target.value) : null)
+                }
+                className={styles.sizeRowSmallInput}
+              />
+            ) : v.has_discount && v.discount_fixed ? (
+              <strong>${Number(v.discount_fixed).toFixed(2)}</strong>
+            ) : (
+              <span>—</span>
+            )}
+          </div>
+
+          {isEditing && (
+            <>
+              <div className={styles.sizeRowStat}>
+                <span className={styles.sizeRowStatLabel}>Starts</span>
+                <input
+                  type="datetime-local"
+                  value={editDiscountStartsAt}
+                  onChange={(e) => setEditDiscountStartsAt(e.target.value)}
+                  className={styles.sizeRowSmallInput}
+                />
+              </div>
+              <div className={styles.sizeRowStat}>
+                <span className={styles.sizeRowStatLabel}>Ends</span>
+                <input
+                  type="datetime-local"
+                  value={editDiscountEndsAt}
+                  onChange={(e) => setEditDiscountEndsAt(e.target.value)}
+                  className={styles.sizeRowSmallInput}
+                />
+              </div>
+            </>
+          )}
+
+          <div className={styles.sizeRowStat}>
             <span className={styles.sizeRowStatLabel}>Stock</span>
             <input
               type="number"
@@ -337,6 +430,49 @@ export const VariantManager: React.FC<VariantManagerProps> = ({
               onChange={(e) => setQuantity(Number(e.target.value))}
               required
               disabled={!trackStock}
+            />
+          </div>
+
+          <div className={styles.group}>
+            <label>Discount %</label>
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              value={discountPercentage}
+              onChange={(e) => setDiscountPercentage(Number(e.target.value))}
+            />
+          </div>
+
+          <div className={styles.group}>
+            <label>Discount Fixed ($)</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={discountFixed ?? ""}
+              onChange={(e) =>
+                setDiscountFixed(e.target.value ? Number(e.target.value) : null)
+              }
+            />
+          </div>
+
+          <div className={styles.group}>
+            <label>Discount Starts</label>
+            <input
+              type="datetime-local"
+              value={discountStartsAt}
+              onChange={(e) => setDiscountStartsAt(e.target.value)}
+            />
+          </div>
+
+          <div className={styles.group}>
+            <label>Discount Ends</label>
+            <input
+              type="datetime-local"
+              value={discountEndsAt}
+              onChange={(e) => setDiscountEndsAt(e.target.value)}
             />
           </div>
 

@@ -15,7 +15,7 @@ class ProductFactory extends Factory
 
         return [
             'title' => $title,
-            'slug' => Str::slug($title) . '-' . uniqid(),
+            'slug' => Str::slug($title).'-'.uniqid(),
             'short_description' => $this->faker->sentence(12),
             'description' => $this->faker->paragraphs(3, true),
             'price' => $this->faker->randomFloat(2, 9.99, 499.99),

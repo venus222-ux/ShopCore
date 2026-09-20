@@ -13,6 +13,7 @@ import PlaceOrderButton from "../components/checkout/PlaceOrderButton";
 
 import BillingAddressForm from "../components/BillingAddressForm";
 import { BillingData, emptyBillingData } from "../types/checkout";
+import { getItemPricing } from "../utils/pricing";
 
 import { useAddresses } from "../hooks/useAddresses";
 import { useShippingMethods } from "../hooks/useShippingMethods";
@@ -92,23 +93,19 @@ export default function Checkout() {
 
   // Pricing
   const { totalOriginalSubtotal, totalFinalSubtotal, totalDiscountSaved } = useMemo(() => {
-    return items.reduce(
-      (acc, item) => {
-        const qty = item.quantity || 1;
-        const originalPrice = Number(item.price || 0);
-        const finalPrice =
-          item.has_discount && item.final_price !== undefined
-            ? Number(item.final_price)
-            : originalPrice;
+  return items.reduce(
+    (acc, item) => {
+      const qty = item.quantity || 1;
+      const { unitPrice, originalUnitPrice } = getItemPricing(item);
 
-        acc.totalOriginalSubtotal += qty * originalPrice;
-        acc.totalFinalSubtotal += qty * finalPrice;
-        acc.totalDiscountSaved += qty * (originalPrice - finalPrice);
-        return acc;
-      },
-      { totalOriginalSubtotal: 0, totalFinalSubtotal: 0, totalDiscountSaved: 0 }
-    );
-  }, [items]);
+      acc.totalOriginalSubtotal += qty * originalUnitPrice;
+      acc.totalFinalSubtotal += qty * unitPrice;
+      acc.totalDiscountSaved += qty * (originalUnitPrice - unitPrice);
+      return acc;
+    },
+    { totalOriginalSubtotal: 0, totalFinalSubtotal: 0, totalDiscountSaved: 0 }
+  );
+}, [items]);
 
   // Explicit user-facing notice when coupons disappear mid-session,
   // instead of silently clearing the discount with no explanation.

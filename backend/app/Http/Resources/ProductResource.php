@@ -24,10 +24,10 @@ class ProductResource extends JsonResource
             ->toArray();
 
         // 💡 FALLBACK: If media collection is empty, use database `preview_image` column
-        if (empty($previewUrls) && !empty($this->preview_image)) {
+        if (empty($previewUrls) && ! empty($this->preview_image)) {
             $fallbackUrl = str_starts_with($this->preview_image, 'http')
                 ? $this->preview_image
-                : asset('storage/' . ltrim($this->preview_image, '/'));
+                : asset('storage/'.ltrim($this->preview_image, '/'));
 
             $previewUrls = [$fallbackUrl];
         }
@@ -49,8 +49,8 @@ class ProductResource extends JsonResource
             'discount_starts_at' => optional($this->discount_starts_at)?->toISOString(),
             'discount_ends_at' => optional($this->discount_ends_at)?->toISOString(),
 
-            'has_discount' => method_exists($this->resource, 'hasActiveDiscount') 
-                ? $this->hasActiveDiscount() 
+            'has_discount' => method_exists($this->resource, 'hasActiveDiscount')
+                ? $this->hasActiveDiscount()
                 : ($this->discount_percentage > 0),
 
             'category_id' => $this->category_id,
@@ -65,8 +65,8 @@ class ProductResource extends JsonResource
 
             // 💡 Always return all image key variations so React receives valid URLs
             'preview_image' => $mainImageUrl,
-            'preview_url'   => $mainImageUrl,
-            'preview_urls'  => $previewUrls,
+            'preview_url' => $mainImageUrl,
+            'preview_urls' => $previewUrls,
 
             'previews' => $previews
                 ->map(fn ($m) => [

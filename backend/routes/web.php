@@ -3,9 +3,8 @@
 use App\Http\Controllers\MetricsController;
 use Illuminate\Support\Facades\Route;
 
-
 Route::get('/test-worker', function () {
-    if (!isset($GLOBALS['worker_start_time'])) {
+    if (! isset($GLOBALS['worker_start_time'])) {
         $GLOBALS['worker_start_time'] = microtime(true);
         $GLOBALS['worker_counter'] = 0;
     }
@@ -21,9 +20,6 @@ Route::get('/test-worker', function () {
 
 Route::get('/metrics', [MetricsController::class, 'index']);
 
-
 Route::get('/', function () {
     return view('welcome');
 });
-
-

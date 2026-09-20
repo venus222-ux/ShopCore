@@ -22,6 +22,7 @@ class SearchController extends Controller
             'asset_type' => $request->input('asset_type'),
             'min_price' => $request->input('min_price'),
             'max_price' => $request->input('max_price'),
+            'on_sale' => $request->boolean('on_sale'),
             'term' => ['is_published' => true],
             'attributes' => $request->input('attributes', []),
         ];

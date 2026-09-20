@@ -176,6 +176,12 @@ export interface AttributeValue {
   slug: string;
   sort_order: number;
   attribute?: Attribute;
+  discount_percentage: number | null;
+  discount_fixed: number | null;
+  discount_starts_at: string | null;
+  discount_ends_at: string | null;
+  final_price: number;
+  has_discount: boolean;
   // NOTE: no bare `images` field here anymore - images are scoped per
   // product now, so they're never attached to the global AttributeValue
   // record itself. Product-scoped images arrive only through
@@ -219,11 +225,14 @@ export interface ProductVariant {
 export interface CreateVariantPayload {
   sku?: string;
   price?: number | null;
-  discount_percentage?: number | null;
   is_default?: boolean;
   attribute_value_ids: number[];
   track_stock?: boolean;
   quantity?: number;
+  discount_percentage?: number;
+  discount_fixed?: number | null;
+  discount_starts_at?: string;
+  discount_ends_at?: string;
 }
 
 /* ================= PRODUCT VARIANTS (storefront) ================= */

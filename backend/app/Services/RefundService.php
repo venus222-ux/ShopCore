@@ -21,38 +21,39 @@ class RefundService
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
-   public function requestRefund(Order $order, int $userId, float $amount, ?string $reason = null): Refund
-{
-    if ($order->status !== 'paid') {
-        throw new \Exception('Only paid orders can be refunded.');
+    public function requestRefund(Order $order, int $userId, float $amount, ?string $reason = null): Refund
+    {
+        if ($order->status !== 'paid') {
+            throw new \Exception('Only paid orders can be refunded.');
+        }
+
+        if ($order->payment_method !== 'cash'
+            && empty($order->payment_intent_id)
+            && ! empty($order->stripe_session_id)) {
+            $this->recoverPaymentIntent($order);
+            $order->refresh();
+        }
+
+        $available = $this->getAvailableToRefund($order);
+
+        if ($amount <= 0 || $amount > $available) {
+            throw new \Exception("Requested amount exceeds what is refundable (max \${$available}).");
+        }
+
+        $refund = Refund::create([
+            'order_id' => $order->id,
+            'user_id' => $userId,
+            'amount' => $amount,
+            'reason' => $reason,
+            'requested_by_customer' => true,
+            'status' => 'requested',
+        ]);
+
+        event(new RefundRequested($refund));
+
+        return $refund;
     }
 
-    if ($order->payment_method !== 'cash'
-        && empty($order->payment_intent_id)
-        && ! empty($order->stripe_session_id)) {
-        $this->recoverPaymentIntent($order);
-        $order->refresh();
-    }
-
-    $available = $this->getAvailableToRefund($order);
-
-    if ($amount <= 0 || $amount > $available) {
-        throw new \Exception("Requested amount exceeds what is refundable (max \${$available}).");
-    }
-
-    $refund = Refund::create([
-        'order_id' => $order->id,
-        'user_id' => $userId,
-        'amount' => $amount,
-        'reason' => $reason,
-        'requested_by_customer' => true,
-        'status' => 'requested',
-    ]);
-
-    event(new RefundRequested($refund));
-
-    return $refund;
-}
     public function approveRequest(Refund $request): Refund
     {
         if (! $request->isRequested()) {
